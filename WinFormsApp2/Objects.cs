@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Xml.Linq;
 
 namespace Indigo
 {
@@ -14,14 +15,74 @@ namespace Indigo
 
         public bool active = false;
         public Rectangle rect;
-        public Tile(string imageLocation)
+        public Tile(int tileNumber)
         {
+            switch (tileNumber)
+            {
+                case 0:
+                    name = "Center";
+                    tilePic = Resource1.Center_tile;
+                    paths = [0, 1, 2, 3, 4, 5];
+
+                    break;
+                case 1:
+                    name = "Edge";
+                    tilePic = Resource1.Edge_tile;
+                    paths = [2, 1, 0, -1, -1, -1];
+
+                    break;
+                case 2:
+                    name = "GoBack";
+                    tilePic = Resource1.GoBack_tile;
+                    paths = [5, 2, 1, 4, 3, 0];
+
+                    break;
+                case 3:
+                    name = "LetterH";
+                    tilePic = Resource1.LetterH_tile;
+                    paths = [2, 4, 0, 5, 1, 3];
+
+                    break;
+                case 4:
+                    name = "OneWay";
+                    tilePic = Resource1.OneWay_tile;
+                    paths = [5, 4, 3, 2, 1, 0];
+
+                    break;
+                case 5:
+                    name = "Overlap";
+                    tilePic = Resource1.Overlap_tile;
+                    paths = [3, 4, 5, 0, 1, 2];
+
+                    break;
+                case 6:
+                    name = "Sad";
+                    tilePic = Resource1.Sad_tile;
+                    paths = [5, 3, 4, 1, 2, 0];
+
+                    break;
+                default:
+                    name = "Null";
+                    tilePic = Resource1.BackOfTile;
+                    paths = [-1, -1, -1, -1, -1, -1];
+
+                    break;
+            }
+            originalPic = tilePic;
+
+            width = 106;
+            height = 122;
+
+            rect = new Rectangle(position.X, position.Y, width, height - height / 4);
+
+            /*
             name = Path.GetFileNameWithoutExtension(imageLocation);
             name = name.Remove(name.Length - 5);
 
             width = 106;
             height = 122;
 
+            //tilePic = Resource1.BackOfTile;
             tilePic = Image.FromFile(imageLocation);
 
             //if (imageLocation != "System.Drawing.Bitmap")
@@ -63,6 +124,7 @@ namespace Indigo
                     paths = [-1, -1, -1, -1, -1, -1];
                     break;
             }
+            */
         }
     }
     internal class Gem : Object
@@ -71,8 +133,31 @@ namespace Indigo
         public int onTile = -1;
         public int onPath = -1;
         public bool active = false;
-        public Gem(string imageLocation) 
+        public Gem(int gemNumber) 
         {
+            switch (gemNumber)
+            {
+                case 0:
+                    name = "Blue";
+                    gemPic = Resource1.Blue_gem;
+
+                    break;
+                case 1:
+                    name = "Green";
+                    gemPic = Resource1.Green_gem;
+
+                    break;
+                default:
+                    name = "Yellow";
+                    gemPic = Resource1.Yellow_gem;
+
+                    break;
+            }
+
+            width = 25;
+            height = 25;
+
+            /*
             name = Path.GetFileNameWithoutExtension(imageLocation);
             name = name.Remove(name.Length - 4);
 
@@ -80,6 +165,7 @@ namespace Indigo
             height = 25;
 
             gemPic = Image.FromFile(imageLocation);
+            */
         }
     }
     internal class BoardImage : Object
@@ -87,12 +173,13 @@ namespace Indigo
         public Image BoardPic;
         public BoardImage()
         {
-            name = "Board_dot";
+            name = "Empty_Board";
             width = 1000;
             height = 1000;
             position = new Point(0, 0);
 
-            BoardPic = Image.FromFile("Images/board1.jpg");
+            BoardPic = Resource1.board1;
+            //BoardPic = Image.FromFile("Images/board1.jpg");
             //BoardPic = Image.FromFile("Images/Board2.png");
         }
     }

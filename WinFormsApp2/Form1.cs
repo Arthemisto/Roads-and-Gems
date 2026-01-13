@@ -14,7 +14,7 @@ namespace Indigo
         Tile SelectedTile;
         int indexValue;
         int xPos = 100;
-        List<string> imageLocation = new List<string>();
+        List<int> picNumbers = new List<int>();
         int tileNumber = -1;
         int totalTiles = 0;
         int totalGems = 12;
@@ -64,49 +64,36 @@ namespace Indigo
         }
         private void SetUpApp()
         {
-            imageLocation = Directory.GetFiles("Images", "*_tile.png").ToList();
-
-            /*
-            List<int> picNumbers = new List<int>();
-
-            for (int i = 0; i < imageLocation.Count; i++)
+            for (int i = 0; i < 7; i++)
                 picNumbers.Add(i);
+            
+            List<int> temp = new List<int>(picNumbers);
+
+            temp.RemoveAt(0);
+            temp.RemoveAt(0);
 
             for (int i = 0; i < 5; i++)
                 picNumbers.Insert(1, picNumbers[1]);
 
-            int lastIndex = picNumbers.Count - 1;
-
-            for (int i = 0; i < 5; i++)
-                for (int j = 0; j < 3; j++)
-                    picNumbers.Insert(lastIndex - i, picNumbers[lastIndex - i]);
+            for (int i = 0; i < 3; i++)
+                picNumbers.AddRange(temp);
 
             totalTiles = picNumbers.Count;
-            */
-
-            List<string> temp = new List<string>(imageLocation);
-
-            temp.RemoveAt(0);
-            temp.RemoveAt(0);
-
-            for (int i = 0; i < 5; i++)
-                imageLocation.Insert(1, imageLocation[1]);
-
-            for (int i = 0; i < 3; i++)
-                imageLocation.AddRange(temp);
-
-            totalTiles = imageLocation.Count;
             for (int i = 0; i < totalTiles; i++)
                 MakeTiles();
 
-            imageLocation = Directory.GetFiles("Images", "*_gem.png").ToList();
+            picNumbers.Clear();
+            for (int i = 0; i < 3; i++)
+                picNumbers.Add(i);
+
             for (int i = 0; i < 4; i++)
             {
-                imageLocation.Insert(1, imageLocation[1]);
-                int lasGem = imageLocation.Count - 1;
-                imageLocation.Insert(lasGem, imageLocation[lasGem]);
+                picNumbers.Insert(1, picNumbers[1]);
+
+                int lasGem = picNumbers.Count - 1;
+                picNumbers.Insert(lasGem, picNumbers[lasGem]);
             }
-            imageLocation.Insert(7, imageLocation[7]);
+            picNumbers.Insert(7, picNumbers[7]);
 
             for (int i = 0; i < totalGems; i++)
                 MakeGems(i);
@@ -116,7 +103,7 @@ namespace Indigo
         private void MakeTiles()
         {
             tileNumber++;
-            Tile newTile = new Tile(imageLocation[tileNumber]);
+            Tile newTile = new Tile(picNumbers[tileNumber]);
             int placedIndex = -1;
 
             int x_1;
@@ -174,7 +161,7 @@ namespace Indigo
         }
         private void MakeGems(int gemNumber)
         {
-            Gem newGem = new Gem(imageLocation[gemNumber]);
+            Gem newGem = new Gem(picNumbers[gemNumber]);
             int x_1 = 0;
             int y_1 = 0;
             if (newGem.name == "Blue")
@@ -349,14 +336,6 @@ namespace Indigo
 
                 neighbor.gemsInside = new List<Gem>(temp);
             }
-
-
-
-            /*
-             add index one to another and reverse
-            if is index 0 -> get gem (count, on 6 - blue)
-            maybe let gem go until no path (HZ)
-             */
         }
         Vector2 Bezier(Vector2 p0, Vector2 p1, Vector2 p2, float t)
         {
@@ -722,47 +701,6 @@ namespace Indigo
             }
 
             return;
-
-            //foreach (Gem gem in gems)
-            //{
-            //    graphics.DrawImage(gem.gemPic, gem.position.X, gem.position.Y, gem.width, gem.height);
-            //}
-
-
-            //Vector2 startPoint = Vector2.Lerp(points[1], points[13], 0.5f);
-            //Vector2 endPoint = Vector2.Lerp(points[13], points[8], 0.5f);
-            //Vector2 center = points[2];
-            //float radius = distanceFromCtoC;
-            //RectangleF rect = new RectangleF(
-            //    center.X - radius,
-            //    center.Y - radius,
-            //    radius * 2,
-            //    radius * 2);
-
-            //Vector2 dir = startPoint - center;
-            //float startAngle = MathF.Atan2(dir.Y, dir.X) * 180f / MathF.PI;
-            //float sweepAngle = 60f;
-
-            //using (Pen pen = new Pen(Color.Red, 2))
-            //{
-            //    graphics.DrawArc(pen, rect, startAngle, sweepAngle);
-            //}
-
-
-            //Vector2 startPoint = Vector2.Lerp(points[1], points[13], 0.5f);
-            //float startAngle = MathF.Atan2(
-            //    startPoint.Y - points[2].Y,
-            //    startPoint.X - points[2].X
-            //);
-            //e.Graphics.DrawArc(
-            //    Pens.Blue,
-            //    startPoint.Y,
-            //    startPoint.Y,
-            //    distanceFromCtoC * 2,
-            //    distanceFromCtoC * 2,
-            //    startAngle * 180f / MathF.PI,
-            //    6f * 60f
-            //);
         }
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {

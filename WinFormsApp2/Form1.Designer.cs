@@ -36,8 +36,8 @@
             label2 = new Label();
             GemTimer = new System.Windows.Forms.Timer(components);
             debugButton = new Button();
-            textBox1 = new TextBox();
-            TwoPlayersButton = new Button();
+            twoPlayersButton = new Button();
+            label3 = new Label();
             SuspendLayout();
             // 
             // label1
@@ -105,27 +105,26 @@
             debugButton.UseVisualStyleBackColor = true;
             debugButton.Click += debugButton_Click;
             // 
-            // textBox1
+            // twoPlayersButton
             // 
-            textBox1.BackColor = Color.Gray;
-            textBox1.BorderStyle = BorderStyle.FixedSingle;
-            textBox1.Font = new Font("Segoe UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            textBox1.Location = new Point(1285, 22);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(221, 47);
-            textBox1.TabIndex = 4;
-            textBox1.Text = "Options:";
-            textBox1.TextAlign = HorizontalAlignment.Center;
+            twoPlayersButton.Location = new Point(1285, 89);
+            twoPlayersButton.Name = "twoPlayersButton";
+            twoPlayersButton.Size = new Size(94, 29);
+            twoPlayersButton.TabIndex = 5;
+            twoPlayersButton.Text = "2 Players";
+            twoPlayersButton.UseVisualStyleBackColor = true;
+            twoPlayersButton.Click += TwoPlayersButton_Click;
             // 
-            // TwoPlayersButton
+            // label3
             // 
-            TwoPlayersButton.Location = new Point(1285, 89);
-            TwoPlayersButton.Name = "TwoPlayersButton";
-            TwoPlayersButton.Size = new Size(94, 29);
-            TwoPlayersButton.TabIndex = 5;
-            TwoPlayersButton.Text = "2 Players";
-            TwoPlayersButton.UseVisualStyleBackColor = true;
-            TwoPlayersButton.Click += TwoPlayersButton_Click;
+            label3.BackColor = Color.Gray;
+            label3.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
+            label3.Location = new Point(1285, 22);
+            label3.Name = "label3";
+            label3.Size = new Size(221, 52);
+            label3.TabIndex = 6;
+            label3.Text = "Options:";
+            label3.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // Form1
             // 
@@ -134,8 +133,8 @@
             BackColor = Color.FromArgb(64, 64, 64);
             BackgroundImageLayout = ImageLayout.Center;
             ClientSize = new Size(1532, 1253);
-            Controls.Add(TwoPlayersButton);
-            Controls.Add(textBox1);
+            Controls.Add(label3);
+            Controls.Add(twoPlayersButton);
             Controls.Add(debugButton);
             Controls.Add(label2);
             Controls.Add(label1);
@@ -147,7 +146,6 @@
             Text = "Indigo";
             KeyDown += Form1_KeyDown;
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
@@ -159,7 +157,7 @@
         private Label label2;
         private System.Windows.Forms.Timer GemTimer;
         private Button debugButton;
-        private TextBox textBox1;
-        private Button TwoPlayersButton;
+        private Button twoPlayersButton;
+        private Label label3;
     }
 }
