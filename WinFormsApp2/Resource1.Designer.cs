@@ -83,46 +83,6 @@ namespace Indigo {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap board {
-            get {
-                object obj = ResourceManager.GetObject("board", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap Board_dot {
-            get {
-                object obj = ResourceManager.GetObject("Board_dot", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap board1 {
-            get {
-                object obj = ResourceManager.GetObject("board1", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap Board2 {
-            get {
-                object obj = ResourceManager.GetObject("Board2", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap Center_tile {
             get {
                 object obj = ResourceManager.GetObject("Center_tile", resourceCulture);
@@ -133,9 +93,9 @@ namespace Indigo {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Cyan_point {
+        internal static System.Drawing.Bitmap Cyan_player {
             get {
-                object obj = ResourceManager.GetObject("Cyan_point", resourceCulture);
+                object obj = ResourceManager.GetObject("Cyan_player", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -146,6 +106,26 @@ namespace Indigo {
         internal static System.Drawing.Bitmap Edge_tile {
             get {
                 object obj = ResourceManager.GetObject("Edge_tile", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Fin_Board {
+            get {
+                object obj = ResourceManager.GetObject("Fin_Board", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Fin_dotBoard {
+            get {
+                object obj = ResourceManager.GetObject("Fin_dotBoard", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -203,9 +183,9 @@ namespace Indigo {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Purple_point {
+        internal static System.Drawing.Bitmap Purple_player {
             get {
-                object obj = ResourceManager.GetObject("Purple_point", resourceCulture);
+                object obj = ResourceManager.GetObject("Purple_player", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -213,9 +193,9 @@ namespace Indigo {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Red_point {
+        internal static System.Drawing.Bitmap Red_player {
             get {
-                object obj = ResourceManager.GetObject("Red_point", resourceCulture);
+                object obj = ResourceManager.GetObject("Red_player", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -233,9 +213,9 @@ namespace Indigo {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap White_point {
+        internal static System.Drawing.Bitmap White_player {
             get {
-                object obj = ResourceManager.GetObject("White_point", resourceCulture);
+                object obj = ResourceManager.GetObject("White_player", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

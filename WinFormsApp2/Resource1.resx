@@ -124,26 +124,20 @@
   <data name="Blue_gem" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\Blue_gem.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="board" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Resources\board.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="board1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Resources\board1.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Board2" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Resources\Board2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Board_dot" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Resources\Board_dot.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="Center_tile" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\Center_tile.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Cyan_point" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="Cyan_player" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\Cyan_point.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Edge_tile" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\Edge_tile.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Fin_Board" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\Fin_Board.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Fin_dotBoard" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\Fin_dotBoard.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="GoBack_tile" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\GoBack_tile.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -160,16 +154,16 @@
   <data name="Overlap_tile" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\Overlap_tile.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Purple_point" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="Purple_player" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\Purple_point.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Red_point" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="Red_player" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\Red_point.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Sad_tile" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\Sad_tile.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="White_point" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="White_player" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\White_point.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Yellow_gem" type="System.Resources.ResXFileRef, System.Windows.Forms">
