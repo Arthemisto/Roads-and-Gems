@@ -1,88 +1,108 @@
-using System;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.Net;
 using System.Numerics;
-using System.Security.Cryptography;
 
 namespace Indigo
 {
     public partial class Form1 : Form
     {
         List<Tile> tiles = new List<Tile>();
-        Tile SelectedTile;
-        int indexValue;
-        int xPos = 100;
-        List<int> picNumbers = new List<int>();
-        int tileNumber = -1;
-        int totalTiles = 0;
-        int totalGems = 12;
-        int lineAnimation = 0;
-
-        int offsetX = -4;
-        int offsetY = 5;            //Persition by eye
-        int boardOffset = 5;
-
-        float distanceFromCtoC = 10000;
-        int rings = 5;
-
-        public Size formOriginalSize;
-        BoardImage boardImage;
+        List<Gem> gems = new List<Gem>();                           // lists of main objects
+        List<PlayerToken> playerTokens = new List<PlayerToken>();
 
         Vector2[] points;
+        List<int> picNumbers = new List<int>();
         Tile[] placedTiles;
-        List<Gem> gems = new List<Gem>();
-        List<Gem> movingGems = new List<Gem>();
-        Image rotated;
+        List<Gem> movingGems = new List<Gem>();                     // additional lists of objects
+        List<float> playersPoints = new List<float>();
 
+        BoardImage boardImage;
+        Tile SelectedTile;                                          // important objects
         Movement m1 = new Movement();
 
+        int rings = 5;
+        int totalTiles = 0;
+        int totalGems = 12;                                         // game parameters
+        float distanceFromCtoC = 10000;
+        int numOfPlayers = 0;
+        
+        int xPos = 50;
+        int tileNumber = -1;                                        // tile creation and movement visuals
+        int lineAnimation = 0;
+
+        int widthOffset = 20;
+        int heightOffset = 5;                                       // persition by eye
+
         bool debugMode = false;
+        bool hideMode = false;                                      // modes
         public Form1()
         {
             InitializeComponent();
-            //SetUpApp();
 
-            boardImage = new BoardImage();
             placedTiles = new Tile[3 * rings * rings - 3 * rings + 1];
 
-            formOriginalSize = ClientSize;
-            distanceFromCtoC = 0.1f * boardImage.width + boardOffset;
+            sizeAdjustments();
 
-            boardImage.position.X = (Board.Width - boardImage.width) / 2;
+            boardImage = new BoardImage();
+            boardImage.position.X = 40 + Tile.width;
+            boardImage.position.Y = 25;
 
-            var centerX = boardImage.position.X + boardImage.width / 2 + offsetX;
-            var centerY = boardImage.position.Y + boardImage.height / 2 + offsetY;
+            distanceFromCtoC = Tile.width;
+
+            var centerX = boardImage.position.X + BoardImage.width / 2;
+            var centerY = boardImage.position.Y + BoardImage.height / 2;
             Vector2 center = new Vector2(centerX, centerY);
 
-            points = CreateHexGrid(center, 5, distanceFromCtoC);
+            points = CreateHexGrid(center, rings, distanceFromCtoC);
 
             SetUpApp();
+        }
+        private void sizeAdjustments()
+        {
+            BoardImage.width += widthOffset;
+            BoardImage.height += heightOffset;
 
-            //GemTimer.Start();
+            float percent = 0.9f;        // Hardcoded
+
+            BoardImage.width = (int)(BoardImage.width * percent);
+            BoardImage.height = (int)(BoardImage.height * percent);
+
+            Tile.width = (int)(Tile.width * percent);
+            Tile.height = (int)(Tile.height * percent);
+
+            Gem.width = (int)(Gem.width * percent);
+            Gem.height = (int)(Gem.height * percent);
+
+            PlayerToken.width = (int)(PlayerToken.width * percent);
+            PlayerToken.height = (int)(PlayerToken.height * percent);
         }
         private void SetUpApp()
         {
             for (int i = 0; i < 7; i++)
                 picNumbers.Add(i);
-            
+
             List<int> temp = new List<int>(picNumbers);
 
-            temp.RemoveAt(0);
-            temp.RemoveAt(0);
+            temp.Remove(0);
+            temp.Remove(1);     // center and edge
 
             for (int i = 0; i < 5; i++)
-                picNumbers.Insert(1, picNumbers[1]);
+            {
+                picNumbers.Insert(1, 1);        // add edge
+                picNumbers.AddRange(temp);      // add 5 normal tiles i times
+            }
 
-            for (int i = 0; i < 3; i++)
+            temp.Remove(2);
+            temp.Remove(5);     // goBack and overlap
+
+            
+            for (int i = 0; i < 14 - 6; i++)                     
                 picNumbers.AddRange(temp);
-
+            
             totalTiles = picNumbers.Count;
             for (int i = 0; i < totalTiles; i++)
                 MakeTiles();
 
             picNumbers.Clear();
+
             for (int i = 0; i < 3; i++)
                 picNumbers.Add(i);
 
@@ -98,8 +118,9 @@ namespace Indigo
             for (int i = 0; i < totalGems; i++)
                 MakeGems(i);
 
-            label1.Text = "Card " + (tileNumber + 1) + " of " + totalTiles + " Offset: " + (0.1f * boardImage.width + 5);
+            debugLabel1.Text = "Card " + (tileNumber + 1) + " of " + totalTiles + " Offset: " + (0.1f * BoardImage.width + 5);
         }
+
         private void MakeTiles()
         {
             tileNumber++;
@@ -111,8 +132,8 @@ namespace Indigo
 
             if (newTile.name == "Center")
             {
-                x_1 = (int)(points[0].X - newTile.width / 2f); // + boardOffset);
-                y_1 = (int)(points[0].Y - newTile.height / 2f); // + boardOffset);
+                x_1 = (int)(points[0].X - Tile.width / 2f);
+                y_1 = (int)(points[0].Y - Tile.height / 2f);
                 newTile.index = 0;
                 placedIndex = 0;
             }
@@ -123,12 +144,12 @@ namespace Indigo
                 newTile.index = p;
                 placedIndex = p;
 
-                x_1 = (int)(points[p].X - newTile.width / 2f); // + boardOffset);
-                y_1 = (int)(points[p].Y - newTile.height / 2f); // + boardOffset);
+                x_1 = (int)(points[p].X - Tile.width / 2f);
+                y_1 = (int)(points[p].Y - Tile.height / 2f);
 
                 if (tileNumber > 1)
                 {
-                    newTile.tilePic = ImageUtils.RotateHex(newTile.tilePic, 60f * (tileNumber - 1), newTile.width, newTile.height);
+                    newTile.tilePic = ImageUtils.RotateHex(newTile.tilePic, 60f * (tileNumber - 1), Tile.width, Tile.height);
 
                     for (int i = 0; i < 6; i++)
                     {
@@ -142,18 +163,23 @@ namespace Indigo
             }
             else
             {
-                x_1 = xPos;
-                y_1 = 1000;
-                xPos += 200;
+                //x_1 = (picNumbers[tileNumber] - 2) * 200 + xPos;
+                //y_1 = BoardImage.height + boardImage.position.Y + 15;
 
-                if (xPos >= 5 * 200)
-                    xPos -= 5 * 200 + 10;       //magic number
+                x_1 = 20;
+                y_1 = (picNumbers[tileNumber] - 2) * 200 + xPos;
+
+                if (tileNumber < 37 && (tileNumber - 7) % 6 == 0)
+                    xPos -= 5;
+
+                if (tileNumber >= 37 && (tileNumber - 7) % 4 == 0)
+                    xPos -= 5;
             }
 
             newTile.position.X = x_1;
             newTile.position.Y = y_1;
             newTile.rect.X = newTile.position.X;
-            newTile.rect.Y = newTile.position.Y + newTile.height / 8;
+            newTile.rect.Y = newTile.position.Y + Tile.height / 8;
 
             tiles.Add(newTile);
             if (placedIndex != -1)
@@ -167,14 +193,14 @@ namespace Indigo
             if (newGem.name == "Blue")
             {
                 newGem.onTile = 0;
-                x_1 = (int)(points[0].X - newGem.width / 2f);
-                y_1 = (int)(points[0].Y - newGem.height / 2f);
+                x_1 = (int)(points[0].X - Gem.width / 2f);
+                y_1 = (int)(points[0].Y - Gem.height / 2f);
             }
             else if (newGem.name == "Green")
             {
                 newGem.onTile = 0;
-                x_1 = (int)(points[0].X - newGem.width / 2f + 30 * (float)Math.Cos(gemNumber * 72 * Math.PI / 180f));
-                y_1 = (int)(points[0].Y - newGem.height / 2f + 30 * (float)Math.Sin(gemNumber * 72 * Math.PI / 180f));
+                x_1 = (int)(points[0].X - Gem.width / 2f + 30 * (float)Math.Cos(gemNumber * 72 * Math.PI / 180f));
+                y_1 = (int)(points[0].Y - Gem.height / 2f + 30 * (float)Math.Sin(gemNumber * 72 * Math.PI / 180f));
             }
             else if (newGem.name == "Yellow")
             {
@@ -182,8 +208,8 @@ namespace Indigo
                 newGem.onPath = (4 + gemNumber % 6) % 6;
 
                 Vector2 v_1 = Vector2.Lerp(points[newGem.onTile], points[newGem.onTile - 18], 1 / 4f);
-                x_1 = (int)(v_1.X - newGem.width / 2f);
-                y_1 = (int)(v_1.Y - newGem.height / 2f);
+                x_1 = (int)(v_1.X - Gem.width / 2f);
+                y_1 = (int)(v_1.Y - Gem.height / 2f);
             }
             newGem.position.X = x_1;
             newGem.position.Y = y_1;
@@ -191,13 +217,46 @@ namespace Indigo
             gems.Add(newGem);
             placedTiles[newGem.onTile].gemsInside.Add(newGem);
         }
+        private void MakeTokens(List<string> colors)
+        {
+            //will break if numOfPlayers = 3 and 4
 
-        public Vector2[] CreateHexGrid(Vector2 center, int diam, float originalR)
+            int numOfPlayers = colors.Count;
+
+            if (numOfPlayers == 2)
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    int playerNumber = i % numOfPlayers;
+                    PlayerToken token = new PlayerToken(playerNumber, colors[playerNumber]);
+                    playerTokens.Add(token);
+
+                    token = new PlayerToken(playerNumber, colors[playerNumber]);
+                    playerTokens.Add(token);
+                }
+            }
+
+            var r = Tile.height / 2 * 3 - 5;
+            var numOfRotations = 7;
+
+            for (int i = 0; i < playerTokens.Count; i++)
+            {
+                playerTokens[i].position.X = (int)(points[25 + i].X + r * (float)Math.Sin(numOfRotations * 60 * Math.PI / 180f) - PlayerToken.width / 2);
+                playerTokens[i].position.Y = (int)(points[25 + i].Y + r * (float)Math.Cos(numOfRotations * 60 * Math.PI / 180f) - PlayerToken.width / 2);
+
+                playerTokens[i + 1].position.X = (int)(points[26 + i].X + r * (float)Math.Sin(numOfRotations * 60 * Math.PI / 180f) - PlayerToken.width / 2);
+                playerTokens[i + 1].position.Y = (int)(points[26 + i].Y + r * (float)Math.Cos(numOfRotations * 60 * Math.PI / 180f)  - PlayerToken.width / 2);
+
+                numOfRotations--;
+                i++;
+            }
+        }
+        public Vector2[] CreateHexGrid(Vector2 center, int totalNumOfRings, float originalR)
         {
             var points = new List<Vector2> { center };
             var r = originalR;
 
-            for (int ring = 1; ring < diam; ring++)
+            for (int ring = 1; ring < totalNumOfRings; ring++)
             {
                 for (int a = 0; a < 6; a++)
                 {
@@ -207,7 +266,7 @@ namespace Indigo
                 }
                 r += originalR;
 
-                if (diam < 3 || ring == 1)
+                if (totalNumOfRings < 3 || ring == 1)
                     continue;
 
                 int first = points.Count() - 6;
@@ -224,41 +283,32 @@ namespace Indigo
             }
             return points.ToArray();
         }
+
         public int GetClosestIndex(Vector2 v1)
         {
             Vector2 closestPoint = points.OrderByDescending(v2 => Vector2.Distance(v1, v2)).Last();
 
-            if (Vector2.Distance(v1, closestPoint) > distanceFromCtoC / 2)  //magic number
+            if (Vector2.Distance(v1, closestPoint) > distanceFromCtoC / 2)
                 return -1;
 
             int index = Array.IndexOf(points, closestPoint);
 
             return index;
         }
-        private void Snap(Tile tile)
+        private bool BorderApproved(Tile tile, int index)
         {
-            Vector2 pos = new Vector2(tile.position.X + tile.width / 2, tile.position.Y + tile.height / 2);
-            int index = GetClosestIndex(pos);
+            if (index % 3 != 0)
+                index += 3 - index % 3;
 
-            if (index < 0 || placedTiles[index] != null)
-                return;
+            int pathToBorder = ((index - 45) / 3 + 1) % 6;
+            bool shortPathPlacedToBorder = tile.paths[pathToBorder] == (pathToBorder + 1) % 6;
 
-            tile.index = index;
-            Vector2 new_pos = points[index];
-
-            int newX = (int)(new_pos.X - tile.width / 2f);      // + boardOffset);  // 5 in dot
-            int newY = (int)(new_pos.Y - tile.height / 2f);     // + boardOffset);
-
-            tile.position = new Point(newX, newY);
-            placedTiles[index] = tile;              //DEBUG HERE TO CHECH IF VALUES ARE CORRECT
-
-            List<int> neighborIndexies = FindNeighbors(tile, new_pos);
-            if (!neighborIndexies.Any())
-                return;
-
-            EventsAfterPlacement(tile, neighborIndexies);
+            if (shortPathPlacedToBorder)
+                return false;
+            else
+                return true;
         }
-        private List<int> FindNeighbors(Tile tile, Vector2 pos)
+        private List<int> FindNeighbors(Vector2 pos)
         {
             List<Vector2> neighborsV = points.OrderBy(v => Vector2.Distance(pos, v)).Take(7).ToList();
             List<int> realNeighbors = new List<int>();
@@ -267,7 +317,7 @@ namespace Indigo
                 neighborsV.RemoveAt(0);
             else
             {
-                label1.Text = "Error in FindNeighbors";
+                debugLabel1.Text = "Error in FindNeighbors";
                 return realNeighbors;
             }
 
@@ -281,6 +331,33 @@ namespace Indigo
 
             return realNeighbors;
         }
+        private void Snap(Tile tile)
+        {
+            Vector2 pos = new Vector2(tile.position.X + Tile.width / 2, tile.position.Y + Tile.height / 2);
+            int index = GetClosestIndex(pos);
+
+            if (index < 0 || placedTiles[index] != null)
+                return;
+
+            if (index >= 43)
+                if (!BorderApproved(tile, index))
+                    return;
+
+            tile.index = index;
+            Vector2 new_pos = points[index];
+
+            int newX = (int)(new_pos.X - Tile.width / 2f);
+            int newY = (int)(new_pos.Y - Tile.height / 2f);
+
+            tile.position = new Point(newX, newY);
+            placedTiles[index] = tile;
+
+            List<int> neighborIndexies = FindNeighbors(new_pos);
+            if (!neighborIndexies.Any())
+                return;
+
+            EventsAfterPlacement(tile, neighborIndexies);
+        }
         private void EventsAfterPlacement(Tile placedTile, List<int> neighborIndexies)
         {
             foreach (var index in neighborIndexies)
@@ -290,7 +367,7 @@ namespace Indigo
 
                 if (direction == -1)
                 {
-                    label1.Text = "Error in FindDirection";
+                    debugLabel1.Text = "Error in FindDirection";
                     return;
                 }
 
@@ -309,8 +386,8 @@ namespace Indigo
 
                     var midPoint = (points[0] + points[placedTile.index]) / 2;
 
-                    gems[num].position.X = (int)(midPoint.X - gems[num].width / 2);
-                    gems[num].position.Y = (int)(midPoint.Y - gems[num].height / 2);
+                    gems[num].position.X = (int)(midPoint.X - Gem.width / 2);
+                    gems[num].position.Y = (int)(midPoint.Y - Gem.height / 2);
                 }
 
                 List<Gem> temp = new List<Gem>(neighbor.gemsInside);
@@ -322,8 +399,8 @@ namespace Indigo
                         {
                             var midPoint = (points[neighbor.index - 18] + points[neighbor.index]) / 2;
 
-                            gem.position.X = (int)(midPoint.X - gem.width / 2);
-                            gem.position.Y = (int)(midPoint.Y - gem.height / 2);
+                            gem.position.X = (int)(midPoint.X - Gem.width / 2);
+                            gem.position.Y = (int)(midPoint.Y - Gem.height / 2);
                         }
 
                         gem.active = true;
@@ -388,7 +465,7 @@ namespace Indigo
                 if (!clockwise)
                     rotation = -60f;
 
-                tile.tilePic = ImageUtils.RotateHex(tile.tilePic, rotation, tile.width, tile.height);
+                tile.tilePic = ImageUtils.RotateHex(tile.tilePic, rotation, Tile.width, Tile.height);
             }
 
             int[] temp = new int[6];
@@ -408,6 +485,70 @@ namespace Indigo
                 }
 
             tile.paths = temp;
+        }
+        private void ScoreUpdate(Gem gem)
+        {
+            int tileIndex = gem.onTile;
+
+            if (tileIndex % 3 != 0)
+                tileIndex += 3 - tileIndex % 3;
+
+            int border = (tileIndex - 45) / 3 % 6;
+            float score;
+
+            if (gem.name == "Blue")
+                score = 3;
+            else if (gem.name == "Green")
+                score = 2;
+            else
+                score = 1;
+
+            var player1 = playerTokens[border * 2].playerNumber;
+            var player2 = playerTokens[border * 2 + 1].playerNumber;
+
+            if (player1 == player2)
+                score /= 2;
+
+            var pl = player1;
+            for (int i = 0; i < 2; i++)
+            {
+                playersPoints[pl] += score;
+                pl = player2;
+            }
+
+            playerScore0.Text = " " + (int)playersPoints[0];
+            playerScore1.Text = " " + (int)playersPoints[1];
+        }
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (SelectedTile == null)
+                return;
+
+            debugLabel2.Text = "Rotation: \nRotation num: " + SelectedTile.numOfRotation + "\nPaths: \n[" + SelectedTile.paths[0];
+            for (int i = 0; i < 5; i++)
+                debugLabel2.Text += ", " + SelectedTile.paths[i + 1];
+            debugLabel2.Text += "]";
+
+            switch (e.KeyCode)
+            {
+                case Keys.A:
+                case Keys.Left:
+                    RotateTile(SelectedTile, false);
+                    break;
+                case Keys.D:
+                case Keys.Right:
+                    RotateTile(SelectedTile, true);
+                    break;
+                default:
+                    break;
+            }
+
+            debugLabel2.Text += "\n\nRotation num: " + SelectedTile.numOfRotation + "\nPaths: \n[" + SelectedTile.paths[0];
+            for (int i = 0; i < 5; i++)
+                debugLabel2.Text += ", " + SelectedTile.paths[i + 1];
+            debugLabel2.Text += "]";
+
         }
         private void BoardMouseDown(object sender, MouseEventArgs e)
         {
@@ -431,8 +572,8 @@ namespace Indigo
         {
             if (SelectedTile != null)
             {
-                SelectedTile.position.X = e.X - (SelectedTile.width / 2);
-                SelectedTile.position.Y = e.Y - (SelectedTile.height / 2);
+                SelectedTile.position.X = e.X - (Tile.width / 2);
+                SelectedTile.position.Y = e.Y - (Tile.height / 2);
             }
         }
         private void BoardMouseUp(object sender, MouseEventArgs e)
@@ -453,38 +594,35 @@ namespace Indigo
             if (temp == null)
                 return;
 
-            label1.Text = "Placed " + placedTiles.Count(x => x != null);
-
+            debugLabel1.Text = "Placed " + placedTiles.Count(x => x != null);
+            debugLabel1.Text += "\nResolution (w by h): " + this.Width + " by " + Height;
             //return;
 
-            label1.Text += "\nIndex: " + temp.index + "\nNeighbors: \n[0, 1, 2, 3, 4, 5] \n[" + temp.paths[0];
+            debugLabel1.Text += "\nIndex: " + temp.index + "\nNeighbors: \n[0, 1, 2, 3, 4, 5] \n[" + temp.paths[0];
             for (int i = 0; i < 5; i++)
-                label1.Text += ", " + temp.paths[i + 1];
-            label1.Text += "] \n[" + temp.neighbors[0];
+                debugLabel1.Text += ", " + temp.paths[i + 1];
+            debugLabel1.Text += "] \n[" + temp.neighbors[0];
 
             for (int i = 0; i < 5; i++)
-                label1.Text += ", " + temp.neighbors[i + 1];
-            label1.Text += ']';
+                debugLabel1.Text += ", " + temp.neighbors[i + 1];
+            debugLabel1.Text += ']';
 
             temp = placedTiles[0];
-            label1.Text += "\n\nIndex: " + temp.index + "\nNeighbors: \n[  0,  1,  2,  3,  4,  5]    \n[" + temp.neighbors[0];
+            debugLabel1.Text += "\n\nIndex: " + temp.index + "\nNeighbors: \n[  0,  1,  2,  3,  4,  5]    \n[" + temp.neighbors[0];
             for (int i = 0; i < 5; i++)
-                label1.Text += ", " + temp.neighbors[i + 1];
-            label1.Text += ']';
+                debugLabel1.Text += ", " + temp.neighbors[i + 1];
+            debugLabel1.Text += ']';
         }
+
         private void FormTimerEvent(object sender, EventArgs e)
         {
-            foreach (Tile tile in tiles)
-            {
-                tile.rect.X = tile.position.X;
-                tile.rect.Y = tile.position.Y + tile.height / 8;
-            }
             if (SelectedTile != null)
             {
+                SelectedTile.rect.X = SelectedTile.position.X;
+                SelectedTile.rect.Y = SelectedTile.position.Y + Tile.height / 8;
+
                 if (lineAnimation < 5)
-                {
                     lineAnimation++;
-                }
             }
             Board.Invalidate();
         }
@@ -501,9 +639,9 @@ namespace Indigo
             {
                 Tile currentTile = placedTiles[gem.onTile];
                 int neighborIndex = currentTile.neighbors[gem.onPath];
-                Tile nextTile = placedTiles[neighborIndex];                //mult in fiture - error out of range
+                Tile nextTile = placedTiles[neighborIndex];
 
-                int enteringBy = (gem.onPath + 3) % 6;               //NOT HZ WHY BUT FOR SOME RESON WHEN X2-X3 - ERROR OUT OF INDEX
+                int enteringBy = (gem.onPath + 3) % 6;
                 m1.willExitBy = nextTile.paths[enteringBy];
 
                 Vector2 currentPoint = points[currentTile.index];
@@ -526,7 +664,7 @@ namespace Indigo
                     Vector2 direction = Vector2.Normalize(mid - middlePoint);
 
                     middlePoint += direction * 20f;
-                    m1.speed = 1.5f;                     //To Do speed
+                    m1.speed = 1.5f;
                 }
 
                 m1.startPoint = startPoint;
@@ -536,7 +674,7 @@ namespace Indigo
                 m1.diff = diff;
             }
 
-            if (m1.t > 1f)                          // where reached the end of read
+            if (m1.t > 1f)                          // if reached the end of road
             {
                 gem.onPath = m1.willExitBy;
                 gem.onTile = m1.nextTile.index;
@@ -545,18 +683,20 @@ namespace Indigo
 
                 Vector2 anotherPoint = m1.endPoint;
 
-                if (anotherTile == -1)              // no further road
+                if (anotherTile == -1)              // if no further road
                 {
                     gem.active = false;
                     movingGems.Remove(gem);
                     m1.nextTile.gemsInside.Add(gem);
+                    if (gem.onTile >= 43 && playerTokens.Any())
+                        ScoreUpdate(gem);
                 }
                 else
                     anotherPoint = (points[gem.onTile] + points[anotherTile]) / 2f;
 
 
-                gem.position.X = (int)(anotherPoint.X - gem.width / 2);
-                gem.position.Y = (int)(anotherPoint.Y - gem.height / 2);
+                gem.position.X = (int)(anotherPoint.X - Gem.width / 2);
+                gem.position.Y = (int)(anotherPoint.Y - Gem.height / 2);
 
                 m1.t = 0f;
                 m1.speed = 1f;
@@ -564,7 +704,7 @@ namespace Indigo
                 List<Gem> activeGems = gems.Where(g => g.active == true).ToList();
                 activeGems.Remove(gem);
 
-                if (activeGems.Any())
+                if (activeGems.Any())               // gem collision
                     foreach (var anotherGem in activeGems)
                         if (gem.position == anotherGem.position)
                         {
@@ -582,43 +722,85 @@ namespace Indigo
 
             var currentPosition = Bezier(m1.startPoint, m1.middlePoint, m1.endPoint, m1.t);
 
-            gem.position.X = (int)currentPosition.X - gem.width / 2;
+            gem.position.X = (int)currentPosition.X - Gem.width / 2;
             if (m1.diff != 3 || m1.willExitBy % 3 != 1)
-                gem.position.Y = (int)currentPosition.Y - gem.height / 2;
+                gem.position.Y = (int)currentPosition.Y - Gem.height / 2;
 
             Invalidate();
         }
+
         private void Board_Paint(object sender, PaintEventArgs e)
         {
             var graphics = e.Graphics;
             graphics.DrawImage(
-                boardImage.BoardPic,
+                boardImage.boardPic,
                 boardImage.position.X,
                 boardImage.position.Y,
-                boardImage.width,
-                boardImage.height
+                BoardImage.width,
+                BoardImage.height
             );
 
-            foreach (Tile card in tiles)
+            if (!hideMode)
             {
-                graphics.DrawImage(card.tilePic, card.position.X, card.position.Y, card.width, card.height);
-                Pen outline;
-                if (card.active)
+                foreach (Tile tile in tiles)
                 {
-                    outline = new Pen(Color.Maroon, lineAnimation);
+                    graphics.DrawImage(tile.tilePic, tile.position.X, tile.position.Y, Tile.width, Tile.height);
+                    Pen outline;
+                    if (tile.active)
+                    {
+                        outline = new Pen(Color.Maroon, lineAnimation);
+                    }
+                    else
+                    {
+                        outline = new Pen(Color.Transparent, 1);
+                    }
+                    graphics.DrawRectangle(outline, tile.rect);
                 }
-                else
+
+                for (int i = 0; i < playerTokens.Count(); i++)
                 {
-                    outline = new Pen(Color.Transparent, 1);
+                    graphics.DrawImage(playerTokens[i].tokenPic, playerTokens[i].position.X, playerTokens[i].position.Y, PlayerToken.width, PlayerToken.height);
+                    if (debugMode)
+                    {
+                        graphics.DrawString(i.ToString(), Font, Brushes.Red, playerTokens[i].position.X + 25, playerTokens[i].position.Y);
+                        graphics.FillRectangle(Brushes.Gray, playerTokens[i].position.X - 3, playerTokens[i].position.Y - 3, 6, 6);
+                    }
+
                 }
-                graphics.DrawRectangle(outline, card.rect);
+
+                for (int i = 0; i < gems.Count(); i++)
+                {
+                    graphics.DrawImage(gems[i].gemPic, gems[i].position.X, gems[i].position.Y, Gem.width, Gem.height);
+                    if (debugMode)
+                    {
+                        graphics.DrawString(i.ToString(), Font, Brushes.Red, gems[i].position.X + 25, gems[i].position.Y);
+                        graphics.FillRectangle(Brushes.Gray, gems[i].position.X, gems[i].position.Y, 5, 5);
+                    }
+                }
+
+                if (SelectedTile != null)
+                {
+                    graphics.DrawImage(SelectedTile.tilePic, SelectedTile.position.X, SelectedTile.position.Y, Tile.width, Tile.height);
+                }
             }
 
             if (debugMode)
             {
                 Brush[] brushes = [Brushes.Green, Brushes.Red, Brushes.Blue, Brushes.Yellow, Brushes.Magenta, Brushes.DarkBlue];
-                graphics.FillRectangle(Brushes.Black, points[0].X, points[0].Y, 5, 5);
 
+                var shape = new PointF[6];
+                var r = Tile.height / 2;
+                int pointOffset = 2;
+
+                graphics.FillRectangle(Brushes.Black, points[0].X, points[0].Y, 5, 5);
+                for (int a = 0; a < 6; a++)
+                {
+                    shape[a] = new PointF(
+                        points[0].X + r * (float)Math.Sin(a * 60 * Math.PI / 180f),
+                        points[0].Y + r * (float)Math.Cos(a * 60 * Math.PI / 180f)
+                        );
+                }
+                graphics.DrawPolygon(Pens.Red, shape);
 
                 for (int i = 1; i < points.Count(); i++)
                 {
@@ -626,10 +808,10 @@ namespace Indigo
 
                     graphics.FillRectangle(
                         brushes[i % 6],
-                        p.X,
-                        p.Y,
-                        5,
-                        5
+                        p.X - pointOffset,
+                        p.Y - pointOffset,
+                        pointOffset * 2,
+                        pointOffset * 2
                     );
 
                     graphics.DrawString(
@@ -640,103 +822,48 @@ namespace Indigo
                         p.Y
                     );
 
-                }
 
+                    for (int a = 0; a < 6; a++)
+                    {
+                        shape[a] = new PointF(
+                            p.X + r * (float)Math.Sin(a * 60 * Math.PI / 180f),
+                            p.Y + r * (float)Math.Cos(a * 60 * Math.PI / 180f)
+                            );
+                    }
+
+                    graphics.DrawPolygon(Pens.Red, shape);
+                }
+                
+
+                pointOffset = 5;
                 graphics.FillRectangle(
                     Brushes.Cyan,
-                    m1.startPoint.X - 5,
-                    m1.startPoint.Y - 5,
-                    10,
-                    10
+                    m1.startPoint.X - pointOffset,
+                    m1.startPoint.Y - pointOffset,
+                    pointOffset * 2,
+                    pointOffset * 2
                 );
                 graphics.FillRectangle(
                         Brushes.DarkGray,
-                        m1.middlePoint.X - 5,
-                        m1.middlePoint.Y - 5,
-                        10,
-                        10
+                        m1.middlePoint.X - pointOffset,
+                        m1.middlePoint.Y - pointOffset,
+                        pointOffset * 2,
+                        pointOffset * 2
                     );
                 graphics.FillRectangle(
                         Brushes.Orange,
-                        m1.endPoint.X - 5,
-                        m1.endPoint.Y - 5,
-                        10,
-                        10
+                        m1.endPoint.X - pointOffset,
+                        m1.endPoint.Y - pointOffset,
+                        pointOffset * 2,
+                        pointOffset * 2
                     );
-
-                //Get the middle of the panel
-                var x_0 = boardImage.position.X + boardImage.width / 2 + offsetX;
-                var y_0 = boardImage.position.Y + boardImage.height / 2 + offsetY;
-                //var x_0 = boardImage.position.X + boardImage.width / 2 - 6;
-                //var y_0 = boardImage.height / 2 + 3;
-
-                var shape = new PointF[6];
-
-                var r = 0.1f * Board.Width / 2 + 5;
-                //r *= (float)Math.Cos(30 * Math.PI / 180f);
-
-                //Create 6 points
-                for (int a = 0; a < 6; a++)
-                {
-                    shape[a] = new PointF(
-                        x_0 + r * (float)Math.Sin(a * 60 * Math.PI / 180f),
-                        y_0 + r * (float)Math.Cos(a * 60 * Math.PI / 180f)
-                        );
-                }
-
 
                 graphics.DrawPolygon(Pens.Red, shape);
             }
 
-            for (int i = 0; i < gems.Count(); i++)
-            {
-                graphics.DrawImage(gems[i].gemPic, gems[i].position.X, gems[i].position.Y, gems[i].width, gems[i].height);
-                if (debugMode)
-                    graphics.DrawString(i.ToString(), Font, Brushes.Red, gems[i].position.X + 25, gems[i].position.Y);
-            }
-
-            if (SelectedTile != null)
-            {
-                graphics.DrawImage(SelectedTile.tilePic, SelectedTile.position.X, SelectedTile.position.Y, SelectedTile.width, SelectedTile.height);
-            }
-
             return;
         }
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (SelectedTile == null)
-                return;
-
-            label2.Text = "Rotation: \nIndex: " + SelectedTile.index + "\nRotation num: " + SelectedTile.numOfRotation + "\nPaths: \n[" + SelectedTile.paths[0];
-            for (int i = 0; i < 5; i++)
-                label2.Text += ", " + SelectedTile.paths[i + 1];
-            label2.Text += "]";
-
-            switch (e.KeyCode)
-            {
-                case Keys.A:
-                case Keys.Left:
-                    RotateTile(SelectedTile, false);
-                    break;
-                case Keys.D:
-                case Keys.Right:
-                    RotateTile(SelectedTile, true);
-                    break;
-                default:
-                    break;
-            }
-
-            label2.Text += "\n\nRotation num: " + SelectedTile.numOfRotation + "\nPaths: \n[" + SelectedTile.paths[0];
-            for (int i = 0; i < 5; i++)
-                label2.Text += ", " + SelectedTile.paths[i + 1];
-            label2.Text += "]";
-
-        }
-        private void debugButton_Click(object sender, EventArgs e)
-        {
-            debugMode = !debugMode;
-        }
-        private void panel1_Paint(object sender, PaintEventArgs e)
+        private void Panel1_Paint(object sender, PaintEventArgs e)
         {
             var graphics = e.Graphics;
 
@@ -759,12 +886,52 @@ namespace Indigo
 
 
             graphics.DrawPolygon(Pens.Red, shape);
-        }       //useless
+        }       //unused
 
+        private void DebugButton_Click(object sender, EventArgs e)
+        {
+            debugMode = !debugMode;
+
+            debugLabel1.Visible = debugMode;
+            debugLabel2.Visible = debugMode;
+
+            label2.Visible = !debugMode;
+            player0.Visible = !debugMode;
+            palyer1.Visible = !debugMode;
+            playerScore0.Visible = !debugMode;
+            playerScore1.Visible = !debugMode;
+        }
+        private void HideTilesButton_Click(object sender, EventArgs e)
+        {
+            hideMode = !hideMode;
+        }
         private void TwoPlayersButton_Click(object sender, EventArgs e)
         {
+            if (numOfPlayers != 0)
+                return;
+            
+            numOfPlayers = 2;
+            using (var form = new PlayerForm(numOfPlayers))
+            {
+                if (form.ShowDialog() == DialogResult.OK)
+                {
+                    MakeTokens(form.playerColors);
+                    
+                    player0.Image = playerTokens[0].tokenPic;
+                    playersPoints.Add(0);
+                    playerScore0.Text = " 0";
 
+                    palyer1.Image = playerTokens[0 + numOfPlayers].tokenPic;
+                    playersPoints.Add(0);
+                    playerScore1.Text = " 0";
+
+                    foreach (var gem in gems.Where(g => g.onTile >= 43))
+                        ScoreUpdate(gem);
+                }
+
+            }
         }
+        
     }
 }
 
