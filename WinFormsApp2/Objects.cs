@@ -17,7 +17,7 @@ namespace Indigo
             name = "Empty_Board";
             position = new Point(0, 0);
 
-            boardPic = Resource1.Fin_Board;
+            boardPic = Properties.Resources.Fin_Board;
         }
     }
     internal class Tile : Object
@@ -44,49 +44,49 @@ namespace Indigo
             {
                 case 0:
                     name = "Center";
-                    tilePic = Resource1.Center_tile;
+                    tilePic = Properties.Resources.Center_tile;
                     paths = [0, 1, 2, 3, 4, 5];
 
                     break;
                 case 1:
                     name = "Edge";
-                    tilePic = Resource1.Edge_tile;
+                    tilePic = Properties.Resources.Edge_tile;
                     paths = [2, 1, 0, -1, -1, -1];
 
                     break;
                 case 2:
                     name = "GoBack";
-                    tilePic = Resource1.GoBack_tile;
+                    tilePic = Properties.Resources.GoBack_tile;
                     paths = [5, 2, 1, 4, 3, 0];
 
                     break;
                 case 3:
                     name = "LetterH";
-                    tilePic = Resource1.LetterH_tile;
+                    tilePic = Properties.Resources.LetterH_tile;
                     paths = [2, 4, 0, 5, 1, 3];
 
                     break;
                 case 4:
                     name = "OneWay";
-                    tilePic = Resource1.OneWay_tile;
+                    tilePic = Properties.Resources.OneWay_tile;
                     paths = [5, 4, 3, 2, 1, 0];
 
                     break;
                 case 5:
                     name = "Overlap";
-                    tilePic = Resource1.Overlap_tile;
+                    tilePic = Properties.Resources.Overlap_tile;
                     paths = [3, 4, 5, 0, 1, 2];
 
                     break;
                 case 6:
                     name = "Sad";
-                    tilePic = Resource1.Sad_tile;
+                    tilePic = Properties.Resources.Sad_tile;
                     paths = [5, 3, 4, 1, 2, 0];
 
                     break;
                 default:
                     name = "Null";
-                    tilePic = Resource1.BackOfTile;
+                    tilePic = Properties.Resources.BackOfTile;
                     paths = [-1, -1, -1, -1, -1, -1];
 
                     break;
@@ -108,18 +108,18 @@ namespace Indigo
             {
                 case 0:
                     name = "Blue";
-                    gemPic = Resource1.Blue_gem;
+                    gemPic = Properties.Resources.Blue_gem;
 
                     break;
                 case 1:
                     name = "Green";
-                    gemPic = Resource1.Green_gem;
+                    gemPic = Properties.Resources.Green_gem;
 
                     break;
                 case 2:
                 default:
                     name = "Yellow";
-                    gemPic = Resource1.Yellow_gem;
+                    gemPic = Properties.Resources.Yellow_gem;
 
                     break;
             }
@@ -140,17 +140,17 @@ namespace Indigo
             switch (name)
             {
                 case "Cyan":
-                    tokenPic = Resource1.Cyan_player;
+                    tokenPic = Properties.Resources.Cyan_point;
                     break;
                 case "Purple":
-                    tokenPic = Resource1.Purple_player;
+                    tokenPic = Properties.Resources.Purple_point;
                     break;
                 case "Red":
-                    tokenPic = Resource1.Red_player;
+                    tokenPic = Properties.Resources.Red_point;
                     break;
                 case "White":
                 default:
-                    tokenPic = Resource1.White_player;
+                    tokenPic = Properties.Resources.White_point;
                     break;
             }
         }
