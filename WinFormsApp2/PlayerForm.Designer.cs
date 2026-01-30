@@ -57,7 +57,7 @@
             // 
             // Cyan
             // 
-            Cyan.Image = Resource1.Cyan_player;
+            Cyan.Image = Properties.Resources.Cyan_point;
             Cyan.Location = new Point(130, 160);
             Cyan.Name = "Cyan";
             Cyan.Size = new Size(100, 100);
@@ -68,7 +68,7 @@
             // 
             // Purple
             // 
-            Purple.Image = Resource1.Purple_player;
+            Purple.Image = Properties.Resources.Purple_point;
             Purple.Location = new Point(280, 160);
             Purple.Name = "Purple";
             Purple.Size = new Size(100, 100);
@@ -79,7 +79,7 @@
             // 
             // Red
             // 
-            Red.Image = Resource1.Red_player;
+            Red.Image = Properties.Resources.Red_point;
             Red.Location = new Point(430, 160);
             Red.Name = "Red";
             Red.Size = new Size(100, 100);
@@ -90,7 +90,7 @@
             // 
             // White
             // 
-            White.Image = Resource1.White_player;
+            White.Image = Properties.Resources.White_point;
             White.Location = new Point(580, 160);
             White.Name = "White";
             White.Size = new Size(100, 100);
