@@ -498,14 +498,22 @@ namespace Indigo
         }
         private void ScoreUpdate(Gem gem)
         {
+            float score;
             int tileIndex = gem.onTile;
 
             if (tileIndex % 3 != 0)
                 tileIndex += 3 - tileIndex % 3;
 
             int border = (tileIndex - 45) / 3 % 6;
-            float score;
 
+            if (debugMode)
+                debugLabel2.Text = "Border parameters: \nGem path: " + gem.onPath +
+                    "\nBorder num: " + border + "    tile index = " + tileIndex +
+                    "\nExit paths: " + (border + 1) % 6 + " or " + (border + 2) % 6;
+
+            if ((border + 1) % 6 != gem.onPath && (border + 2) % 6 != gem.onPath)       // Bug fix
+                return;
+            
             if (gem.name == "Blue")
                 score = 3;
             else if (gem.name == "Green")
@@ -520,7 +528,7 @@ namespace Indigo
                 score /= 2;
 
             var pl = player1;
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < numOfPlayers; i++)
             {
                 playersPoints[pl] += score;
                 pl = player2;
@@ -980,7 +988,7 @@ namespace Indigo
                     foreach (var gem in gems.Where(g => g.onTile >= 43))
                         ScoreUpdate(gem);
 
-                    playersButton.BackColor = Color.Silver;
+                    playersButton.BackColor = Color.DarkGray;
 
                     BuildStaticLayer();
                     Board.Invalidate();
@@ -993,7 +1001,7 @@ namespace Indigo
             controlsPicture.Visible = !controlsPicture.Visible;
 
             if (shortRules.Visible)
-                rulesButton.BackColor = Color.Silver;
+                rulesButton.BackColor = Color.DarkGray;
             else
                 rulesButton.BackColor = Color.White;
         }
@@ -1002,7 +1010,7 @@ namespace Indigo
             debugMode = !debugMode;
 
             if (debugMode)
-                debugButton.BackColor = Color.Silver;
+                debugButton.BackColor = Color.DarkGray;
             else 
                 debugButton.BackColor = Color.White;
 
@@ -1026,7 +1034,7 @@ namespace Indigo
             hideMode = !hideMode;
 
             if (hideMode)
-                hideButton.BackColor = Color.Silver;
+                hideButton.BackColor = Color.DarkGray;
             else
                 hideButton.BackColor = Color.White;
 

@@ -47,12 +47,13 @@
             // 
             // doneButton
             // 
+            doneButton.BackColor = Color.DarkGray;
             doneButton.Location = new Point(520, 404);
             doneButton.Name = "doneButton";
             doneButton.Size = new Size(122, 34);
             doneButton.TabIndex = 0;
             doneButton.Text = "Done";
-            doneButton.UseVisualStyleBackColor = true;
+            doneButton.UseVisualStyleBackColor = false;
             doneButton.Click += doneButton_Click;
             // 
             // Cyan

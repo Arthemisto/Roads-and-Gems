@@ -57,10 +57,16 @@
                     if (labels[i].Visible)
                         labels[i].Text = "Player " + (playerColors.IndexOf(colors[i]) + 1);
             }
+
+            if (playerColors.Count == numOfPlayers)
+                doneButton.BackColor = Color.White;
+            else
+                doneButton.BackColor = Color.DarkGray;
         }
         private void doneButton_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.OK;
+            if (playerColors.Count == numOfPlayers)
+                DialogResult = DialogResult.OK;
         }
         private void cancelButton_Click(object sender, EventArgs e)
         {
