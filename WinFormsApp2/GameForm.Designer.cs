@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GameForm));
             debugLabel1 = new Label();
             FormTimer = new System.Windows.Forms.Timer(components);
             panel1 = new Panel();
@@ -107,7 +108,7 @@
             // 
             controlsPicture.BackColor = Color.Gray;
             controlsPicture.Image = Properties.Resources.Controls;
-            controlsPicture.Location = new Point(3, 454);
+            controlsPicture.Location = new Point(3, 440);
             controlsPicture.Name = "controlsPicture";
             controlsPicture.Size = new Size(500, 435);
             controlsPicture.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -146,7 +147,7 @@
             // 
             // debugButton
             // 
-            debugButton.Location = new Point(291, 153);
+            debugButton.Location = new Point(149, 153);
             debugButton.Name = "debugButton";
             debugButton.Size = new Size(95, 30);
             debugButton.TabIndex = 3;
@@ -157,7 +158,7 @@
             // playersButton
             // 
             playersButton.Font = new Font("Segoe UI", 12F);
-            playersButton.Location = new Point(12, 81);
+            playersButton.Location = new Point(223, 81);
             playersButton.Name = "playersButton";
             playersButton.Size = new Size(163, 36);
             playersButton.TabIndex = 5;
@@ -178,7 +179,7 @@
             // 
             // hideButton
             // 
-            hideButton.Location = new Point(165, 153);
+            hideButton.Location = new Point(291, 153);
             hideButton.Name = "hideButton";
             hideButton.Size = new Size(95, 30);
             hideButton.TabIndex = 7;
@@ -239,19 +240,20 @@
             // 
             // backButton
             // 
+            backButton.BackColor = Color.White;
             backButton.Font = new Font("Segoe UI", 12F);
-            backButton.Location = new Point(223, 668);
+            backButton.Location = new Point(223, 460);
             backButton.Name = "backButton";
             backButton.Size = new Size(134, 67);
             backButton.TabIndex = 13;
             backButton.Text = "Back to title screen";
-            backButton.UseVisualStyleBackColor = true;
+            backButton.UseVisualStyleBackColor = false;
             backButton.Click += BackButton_Click;
             // 
             // rulesButton
             // 
             rulesButton.Font = new Font("Segoe UI", 12F);
-            rulesButton.Location = new Point(223, 81);
+            rulesButton.Location = new Point(25, 81);
             rulesButton.Name = "rulesButton";
             rulesButton.Size = new Size(163, 36);
             rulesButton.TabIndex = 14;
@@ -307,12 +309,11 @@
             // 
             controlsLabel.BackColor = Color.Gray;
             controlsLabel.Font = new Font("Segoe UI", 13F);
-            controlsLabel.Location = new Point(25, 474);
+            controlsLabel.Location = new Point(25, 552);
             controlsLabel.Name = "controlsLabel";
-            controlsLabel.Size = new Size(332, 174);
+            controlsLabel.Size = new Size(361, 280);
             controlsLabel.TabIndex = 19;
-            controlsLabel.Text = "Tiles with short path can not be \r\nplaced facing edge of the board\r\n\r\nPress D to rotate tile clockwise  \r\nor A for counterclockwise ";
-            controlsLabel.TextAlign = ContentAlignment.TopCenter;
+            controlsLabel.Text = resources.GetString("controlsLabel.Text");
             // 
             // GameForm
             // 

@@ -37,8 +37,10 @@
             scaleLabel = new Label();
             stScale = new NumericUpDown();
             label1 = new Label();
-            link1Button = new Button();
-            link2Button = new Button();
+            video1Button = new Button();
+            video2Button = new Button();
+            rules1Button = new Button();
+            rules2Button = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)stScale).BeginInit();
             SuspendLayout();
@@ -77,35 +79,38 @@
             // 
             // st2Players
             // 
+            st2Players.BackColor = Color.FromArgb(192, 255, 192);
             st2Players.Font = new Font("Segoe UI", 12F);
             st2Players.Location = new Point(580, 620);
             st2Players.Name = "st2Players";
             st2Players.Size = new Size(100, 40);
             st2Players.TabIndex = 8;
             st2Players.Text = "2 Players";
-            st2Players.UseVisualStyleBackColor = true;
+            st2Players.UseVisualStyleBackColor = false;
             st2Players.Click += st2Players_Click;
             // 
             // st3Players
             // 
+            st3Players.BackColor = Color.FromArgb(255, 192, 192);
             st3Players.Font = new Font("Segoe UI", 12F);
             st3Players.Location = new Point(691, 620);
             st3Players.Name = "st3Players";
             st3Players.Size = new Size(100, 40);
             st3Players.TabIndex = 9;
             st3Players.Text = "3 Players";
-            st3Players.UseVisualStyleBackColor = true;
+            st3Players.UseVisualStyleBackColor = false;
             st3Players.Click += st3Players_Click;
             // 
             // st4Players
             // 
+            st4Players.BackColor = Color.FromArgb(255, 192, 192);
             st4Players.Font = new Font("Segoe UI", 12F);
             st4Players.Location = new Point(801, 620);
             st4Players.Name = "st4Players";
             st4Players.Size = new Size(100, 40);
             st4Players.TabIndex = 10;
             st4Players.Text = "4 Players";
-            st4Players.UseVisualStyleBackColor = true;
+            st4Players.UseVisualStyleBackColor = false;
             st4Players.Click += st4Players_Click;
             // 
             // scaleLabel
@@ -143,27 +148,49 @@
             label1.Text = "Game Rules:";
             label1.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // link1Button
+            // video1Button
             // 
-            link1Button.Font = new Font("Segoe UI", 12F);
-            link1Button.Location = new Point(365, 620);
-            link1Button.Name = "link1Button";
-            link1Button.Size = new Size(157, 40);
-            link1Button.TabIndex = 16;
-            link1Button.Text = "Video (Rus)";
-            link1Button.UseVisualStyleBackColor = true;
-            link1Button.Click += link1Button_Click;
+            video1Button.Font = new Font("Segoe UI", 12F);
+            video1Button.Location = new Point(377, 620);
+            video1Button.Name = "video1Button";
+            video1Button.Size = new Size(145, 40);
+            video1Button.TabIndex = 16;
+            video1Button.Text = "Video (Rus)";
+            video1Button.UseVisualStyleBackColor = true;
+            video1Button.Click += video1Button_Click;
             // 
-            // link2Button
+            // video2Button
             // 
-            link2Button.Font = new Font("Segoe UI", 12F);
-            link2Button.Location = new Point(201, 620);
-            link2Button.Name = "link2Button";
-            link2Button.Size = new Size(158, 40);
-            link2Button.TabIndex = 17;
-            link2Button.Text = "Video (Eng)";
-            link2Button.UseVisualStyleBackColor = true;
-            link2Button.Click += link2Button_Click;
+            video2Button.Font = new Font("Segoe UI", 12F);
+            video2Button.Location = new Point(201, 620);
+            video2Button.Name = "video2Button";
+            video2Button.Size = new Size(145, 40);
+            video2Button.TabIndex = 17;
+            video2Button.Text = "Video (Eng)";
+            video2Button.UseVisualStyleBackColor = true;
+            video2Button.Click += video2Button_Click;
+            // 
+            // rules1Button
+            // 
+            rules1Button.Font = new Font("Segoe UI", 12F);
+            rules1Button.Location = new Point(377, 676);
+            rules1Button.Name = "rules1Button";
+            rules1Button.Size = new Size(145, 40);
+            rules1Button.TabIndex = 18;
+            rules1Button.Text = "Rules (Rus)";
+            rules1Button.UseVisualStyleBackColor = true;
+            rules1Button.Click += rules1Button_Click;
+            // 
+            // rules2Button
+            // 
+            rules2Button.Font = new Font("Segoe UI", 12F);
+            rules2Button.Location = new Point(201, 676);
+            rules2Button.Name = "rules2Button";
+            rules2Button.Size = new Size(145, 40);
+            rules2Button.TabIndex = 19;
+            rules2Button.Text = "Rules (Eng)";
+            rules2Button.UseVisualStyleBackColor = true;
+            rules2Button.Click += rules2Button_Click;
             // 
             // TitleScreenForm
             // 
@@ -171,8 +198,10 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(64, 64, 64);
             ClientSize = new Size(1132, 853);
-            Controls.Add(link2Button);
-            Controls.Add(link1Button);
+            Controls.Add(rules2Button);
+            Controls.Add(rules1Button);
+            Controls.Add(video2Button);
+            Controls.Add(video1Button);
             Controls.Add(label1);
             Controls.Add(stScale);
             Controls.Add(scaleLabel);
@@ -200,7 +229,9 @@
         private Label scaleLabel;
         private NumericUpDown stScale;
         private Label label1;
-        private Button link1Button;
-        private Button link2Button;
+        private Button video1Button;
+        private Button video2Button;
+        private Button rules1Button;
+        private Button rules2Button;
     }
 }

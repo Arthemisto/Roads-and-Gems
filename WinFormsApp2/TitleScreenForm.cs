@@ -4,7 +4,7 @@ namespace Indigo
 {
     public partial class TitleScreenForm : Form
     {
-        int playerCount = 0;
+        int playerCount = 2;
         float percent = 1;
 
         int[] sizesOfObjects = [
@@ -21,12 +21,6 @@ namespace Indigo
         public TitleScreenForm()
         {
             InitializeComponent();
-
-            st2Players.BackColor = Color.LightGreen;
-            st3Players.BackColor = Color.LightPink;
-            st4Players.BackColor = Color.LightPink;
-
-            startButton.BackColor = Color.Gray;
         }
         private void startButton_Click(object sender, EventArgs e)
         {
@@ -51,20 +45,24 @@ namespace Indigo
             //    this.Show();           // executes after GameForm closes
             //}
         }
-        private void link1Button_Click(object sender, EventArgs e)
+        private void video1Button_Click(object sender, EventArgs e)
         {
-            var url = "https://www.youtube.com/watch?v=I7kXYYuxgro&t=47s";
-
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = url,
-                UseShellExecute = true
-            });
+            goToLink("https://www.youtube.com/watch?v=I7kXYYuxgro&t=47s");
         }
-        private void link2Button_Click(object sender, EventArgs e)
+        private void video2Button_Click(object sender, EventArgs e)
         {
-            var url = "https://www.youtube.com/watch?v=LJwy7qXWuNI&t=38s";
-
+            goToLink("https://www.youtube.com/watch?v=LJwy7qXWuNI&t=38s");
+        }
+        private void rules1Button_Click(object sender, EventArgs e)
+        {
+            goToLink("https://tesera.ru/images/items/125371/rules_indigo_rus.pdf");
+        }
+        private void rules2Button_Click(object sender, EventArgs e)
+        {
+            goToLink("https://cdn.ultraboardgames.com/indigo/game-rules.php");
+        }
+        public void goToLink(string url)
+        {
             Process.Start(new ProcessStartInfo
             {
                 FileName = url,
@@ -94,5 +92,6 @@ namespace Indigo
 
             startButton.BackColor = Color.Gray;
         }
+        
     }
 }

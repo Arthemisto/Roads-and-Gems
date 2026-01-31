@@ -5,11 +5,11 @@ namespace Indigo
     internal class Object
     {
         public string name = "Null";
+        public Image picture;
         public Point position = new Point();
     }
     internal class BoardImage : Object
     {
-        public Image boardPic;
         public static int width = 1000;
         public static int height = (int)(width * 2475f / 2452f);
         public BoardImage()
@@ -17,12 +17,11 @@ namespace Indigo
             name = "Empty_Board";
             position = new Point(0, 0);
 
-            boardPic = Properties.Resources.Fin_Board;
+            picture = Properties.Resources.Fin_Board;
         }
     }
     internal class Tile : Object
     {
-        public Image tilePic;
         public Image originalPic;
         public static int height = 125;
         public static int width = (int)(height * 0.866);
@@ -44,59 +43,58 @@ namespace Indigo
             {
                 case 0:
                     name = "Center";
-                    tilePic = Properties.Resources.Center_tile;
+                    picture = Properties.Resources.Center_tile;
                     paths = [0, 1, 2, 3, 4, 5];
 
                     break;
                 case 1:
                     name = "Edge";
-                    tilePic = Properties.Resources.Edge_tile;
+                    picture = Properties.Resources.Edge_tile;
                     paths = [2, 1, 0, -1, -1, -1];
 
                     break;
                 case 2:
                     name = "GoBack";
-                    tilePic = Properties.Resources.GoBack_tile;
+                    picture = Properties.Resources.GoBack_tile;
                     paths = [5, 2, 1, 4, 3, 0];
 
                     break;
                 case 3:
                     name = "LetterH";
-                    tilePic = Properties.Resources.LetterH_tile;
+                    picture = Properties.Resources.LetterH_tile;
                     paths = [2, 4, 0, 5, 1, 3];
 
                     break;
                 case 4:
                     name = "OneWay";
-                    tilePic = Properties.Resources.OneWay_tile;
+                    picture = Properties.Resources.OneWay_tile;
                     paths = [5, 4, 3, 2, 1, 0];
 
                     break;
                 case 5:
                     name = "Overlap";
-                    tilePic = Properties.Resources.Overlap_tile;
+                    picture = Properties.Resources.Overlap_tile;
                     paths = [3, 4, 5, 0, 1, 2];
 
                     break;
                 case 6:
                     name = "Sad";
-                    tilePic = Properties.Resources.Sad_tile;
+                    picture = Properties.Resources.Sad_tile;
                     paths = [5, 3, 4, 1, 2, 0];
 
                     break;
                 default:
                     name = "Null";
-                    tilePic = Properties.Resources.BackOfTile;
+                    picture = Properties.Resources.BackOfTile;
                     paths = [-1, -1, -1, -1, -1, -1];
 
                     break;
             }
-            originalPic = tilePic;
+            originalPic = picture;
         }
     }
     internal class Gem : Object
     {
-        public Image gemPic;
         public static int width = 25;
         public static int height = 25;
         public int onTile = -1;
@@ -108,18 +106,18 @@ namespace Indigo
             {
                 case 0:
                     name = "Blue";
-                    gemPic = Properties.Resources.Blue_gem;
+                    picture = Properties.Resources.Blue_gem;
 
                     break;
                 case 1:
                     name = "Green";
-                    gemPic = Properties.Resources.Green_gem;
+                    picture = Properties.Resources.Green_gem;
 
                     break;
                 case 2:
                 default:
                     name = "Yellow";
-                    gemPic = Properties.Resources.Yellow_gem;
+                    picture = Properties.Resources.Yellow_gem;
 
                     break;
             }
@@ -127,7 +125,6 @@ namespace Indigo
     }
     internal class PlayerToken : Object
     {
-        public Image tokenPic;
         public static int width = 50;
         public static int height = 50;
 
@@ -140,17 +137,17 @@ namespace Indigo
             switch (name)
             {
                 case "Cyan":
-                    tokenPic = Properties.Resources.Cyan_point;
+                    picture = Properties.Resources.Cyan_point;
                     break;
                 case "Purple":
-                    tokenPic = Properties.Resources.Purple_point;
+                    picture = Properties.Resources.Purple_point;
                     break;
                 case "Red":
-                    tokenPic = Properties.Resources.Red_point;
+                    picture = Properties.Resources.Red_point;
                     break;
                 case "White":
                 default:
-                    tokenPic = Properties.Resources.White_point;
+                    picture = Properties.Resources.White_point;
                     break;
             }
         }
