@@ -96,7 +96,7 @@
             Board.Controls.Add(shortRules);
             Board.Location = new Point(402, 20);
             Board.Name = "Board";
-            Board.Size = new Size(1416, 1329);
+            Board.Size = new Size(1201, 1079);
             Board.TabIndex = 0;
             Board.Paint += Board_Paint;
             Board.MouseDown += BoardMouseDown;
