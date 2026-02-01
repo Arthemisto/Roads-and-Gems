@@ -67,8 +67,8 @@ namespace Indigo
         }
         private void SizeAdjustments(int[] sizesOfObjects, float percent)
         {
-            Board.Width = (int)(Board.Width * percent);
-            Board.Height = (int)(Board.Height * percent);
+            //Board.Width = (int)(Board.Width * percent);
+            //Board.Height = (int)(Board.Height * percent);
 
             BoardImage.width = sizesOfObjects[0] + widthOffset;
             BoardImage.height = sizesOfObjects[1] + heightOffset;
@@ -84,6 +84,17 @@ namespace Indigo
 
             PlayerToken.width = (int)(sizesOfObjects[6] * percent);
             PlayerToken.height = (int)(sizesOfObjects[7] * percent);
+
+            Board.Width = this.Width - 400 - 40;
+            Board.Height = this.Height - 40 * 2;
+        }
+        private void GameForm_ResizeEnd(object sender, EventArgs e)
+        {
+            Board.Width = this.Width - 400 - 40;
+            Board.Height = this.Height - 40 * 2;
+
+            BuildStaticLayer();
+            Board.Invalidate();
         }
         private void SetUpApp()
         {
@@ -513,7 +524,7 @@ namespace Indigo
 
             if ((border + 1) % 6 != gem.onPath && (border + 2) % 6 != gem.onPath)       // Bug fix
                 return;
-            
+
             if (gem.name == "Blue")
                 score = 3;
             else if (gem.name == "Green")
@@ -1011,7 +1022,7 @@ namespace Indigo
 
             if (debugMode)
                 debugButton.BackColor = Color.DarkGray;
-            else 
+            else
                 debugButton.BackColor = Color.White;
 
             debugLabel1.Visible = debugMode;

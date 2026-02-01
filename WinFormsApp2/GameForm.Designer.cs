@@ -95,7 +95,7 @@
             Board.BackColor = Color.Navy;
             Board.Controls.Add(controlsPicture);
             Board.Controls.Add(shortRules);
-            Board.Location = new Point(402, 20);
+            Board.Location = new Point(400, 20);
             Board.Name = "Board";
             Board.Size = new Size(1201, 1079);
             Board.TabIndex = 0;
@@ -241,12 +241,12 @@
             // backButton
             // 
             backButton.BackColor = Color.White;
-            backButton.Font = new Font("Segoe UI", 12F);
+            backButton.Font = new Font("Segoe UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 204);
             backButton.Location = new Point(223, 460);
             backButton.Name = "backButton";
-            backButton.Size = new Size(134, 67);
+            backButton.Size = new Size(163, 72);
             backButton.TabIndex = 13;
-            backButton.Text = "Back to title screen";
+            backButton.Text = "Back to the title screen";
             backButton.UseVisualStyleBackColor = false;
             backButton.Click += BackButton_Click;
             // 
@@ -347,6 +347,7 @@
             Name = "GameForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Indigo";
+            ResizeEnd += GameForm_ResizeEnd;
             KeyDown += Form1_KeyDown;
             Board.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)controlsPicture).EndInit();

@@ -57,10 +57,10 @@
             // 
             // startButton
             // 
-            startButton.Font = new Font("Segoe UI", 16F);
-            startButton.Location = new Point(730, 764);
+            startButton.Font = new Font("Segoe UI", 16.2F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            startButton.Location = new Point(691, 764);
             startButton.Name = "startButton";
-            startButton.Size = new Size(171, 60);
+            startButton.Size = new Size(210, 60);
             startButton.TabIndex = 1;
             startButton.Text = "Start Game";
             startButton.UseVisualStyleBackColor = true;
