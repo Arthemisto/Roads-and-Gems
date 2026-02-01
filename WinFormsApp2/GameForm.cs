@@ -28,11 +28,12 @@ namespace Indigo
         float scale = 1;
 
         int xPos = 50;
+        int boardSeparation = 20;
         int tileNumber = -1;                                        // tile creation and movement visuals
         int lineAnimation = 0;
 
-        int widthOffset = 20;
-        int heightOffset = 5;                                       // persition by eye
+        static int widthOffset = 20;
+        static int heightOffset = 5;                                // persition by eye
 
         bool debugMode = false;
         bool hideMode = false;                                      // modes
@@ -50,8 +51,8 @@ namespace Indigo
             SizeAdjustments(sizesOfObjects, percent);
 
             boardImage = new BoardImage();
-            boardImage.position.X = 40 + Tile.width;
-            boardImage.position.Y = 25;
+            boardImage.position.X = boardSeparation * 2 + Tile.width;
+            boardImage.position.Y = boardSeparation;
 
             distanceFromCtoC = Tile.width;
 
@@ -67,8 +68,8 @@ namespace Indigo
         }
         private void SizeAdjustments(int[] sizesOfObjects, float percent)
         {
-            //Board.Width = (int)(Board.Width * percent);
-            //Board.Height = (int)(Board.Height * percent);
+            this.Width = (int)(this.Width * (percent + 0.1));
+            this.Height = (int)(this.Height * (percent + 0.1));
 
             BoardImage.width = sizesOfObjects[0] + widthOffset;
             BoardImage.height = sizesOfObjects[1] + heightOffset;
@@ -85,16 +86,33 @@ namespace Indigo
             PlayerToken.width = (int)(sizesOfObjects[6] * percent);
             PlayerToken.height = (int)(sizesOfObjects[7] * percent);
 
-            Board.Width = this.Width - 400 - 40;
-            Board.Height = this.Height - 40 * 2;
+            boardSeparation = (int)(boardSeparation * (percent + 0.1));
+            Board.Width = boardSeparation * 3 + Tile.width + BoardImage.width;
+            Board.Height = boardSeparation * 2 + BoardImage.height;
+
+            //this.Width = Board.Location.X + BoardImage.width + boardSeparation;
+            //this.Height = Board.Location.Y + BoardImage.height + boardSeparation;
         }
         private void GameForm_ResizeEnd(object sender, EventArgs e)
         {
-            Board.Width = this.Width - 400 - 40;
-            Board.Height = this.Height - 40 * 2;
+            //int newWidth = this.Width - Board.Location.X - 40;
+            //int newWidth = BoardImage.width + boardImage.position.X ;
+            //int newHeight = BoardImage.height + boardImage.position.Y * 2;
+
+            //if (newWidth > 0 && newHeight > 0)
+            //{
+            //    Board.Width = newWidth;
+            //    Board.Height = newHeight;
+            //}
+            //else
+            //    return;
 
             BuildStaticLayer();
             Board.Invalidate();
+
+            debugLabel1.Text = "                (w by h) \nWindow: " + Width + " by " + Height +
+                "\nBoard: \t\t" + Board.Width + " by " + Board.Height +
+                "\nBoardImage: " + BoardImage.width + " by " + BoardImage.height;
         }
         private void SetUpApp()
         {
@@ -187,7 +205,7 @@ namespace Indigo
             }
             else
             {
-                x_1 = 20;
+                x_1 = boardSeparation;
                 y_1 = (int)(((picNumbers[tileNumber] - 2) * 215 + xPos) * scale); //  215 = magic number
 
                 if (tileNumber < 37 && (tileNumber - 7) % 6 == 0)
@@ -1035,7 +1053,6 @@ namespace Indigo
             playerScore0.Visible = !debugMode;
             playerScore1.Visible = !debugMode;
             controlsLabel.Visible = !debugMode;
-            backButton.Visible = !debugMode;
 
             BuildStaticLayer();
             Board.Invalidate();

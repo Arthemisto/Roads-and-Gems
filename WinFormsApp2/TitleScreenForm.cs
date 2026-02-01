@@ -29,13 +29,14 @@ namespace Indigo
                 return;
             }
 
-            var gameForm = new GameForm(sizesOfObjects, percent, playerCount);
+            var gameForm = new GameForm(sizesOfObjects, percent - 0.1f, playerCount);
 
             gameForm.FormClosed += (s, args) => this.Show();
 
             gameForm.Show();
             this.Hide();
 
+            scaleLabel.Text = "Game scale: (%)";
             //          Another variant but does not free up memory :(
             //
             //using (var gameForm = new GameForm(sizesOfObjects, percent, playerCount))
@@ -73,6 +74,7 @@ namespace Indigo
         private void stScale_ValueChanged(object sender, EventArgs e)
         {
             percent = (float)stScale.Value / 100;
+            scaleLabel.Text = "100 is for Full HD";
         }
         private void st2Players_Click(object sender, EventArgs e)
         {

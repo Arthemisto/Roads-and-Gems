@@ -48,9 +48,9 @@
             // doneButton
             // 
             doneButton.BackColor = Color.DarkGray;
-            doneButton.Location = new Point(520, 404);
+            doneButton.Location = new Point(520, 405);
             doneButton.Name = "doneButton";
-            doneButton.Size = new Size(122, 34);
+            doneButton.Size = new Size(122, 33);
             doneButton.TabIndex = 0;
             doneButton.Text = "Done";
             doneButton.UseVisualStyleBackColor = false;
@@ -59,10 +59,10 @@
             // Cyan
             // 
             Cyan.Image = Properties.Resources.Cyan_point;
-            Cyan.Location = new Point(130, 160);
+            Cyan.Location = new Point(131, 140);
             Cyan.Name = "Cyan";
-            Cyan.Size = new Size(100, 100);
-            Cyan.SizeMode = PictureBoxSizeMode.StretchImage;
+            Cyan.Size = new Size(103, 120);
+            Cyan.SizeMode = PictureBoxSizeMode.Zoom;
             Cyan.TabIndex = 9;
             Cyan.TabStop = false;
             Cyan.Click += Cyan_Click;
@@ -70,10 +70,10 @@
             // Purple
             // 
             Purple.Image = Properties.Resources.Purple_point;
-            Purple.Location = new Point(280, 160);
+            Purple.Location = new Point(280, 140);
             Purple.Name = "Purple";
-            Purple.Size = new Size(100, 100);
-            Purple.SizeMode = PictureBoxSizeMode.StretchImage;
+            Purple.Size = new Size(103, 120);
+            Purple.SizeMode = PictureBoxSizeMode.Zoom;
             Purple.TabIndex = 10;
             Purple.TabStop = false;
             Purple.Click += Purple_Click;
@@ -81,10 +81,10 @@
             // Red
             // 
             Red.Image = Properties.Resources.Red_point;
-            Red.Location = new Point(430, 160);
+            Red.Location = new Point(429, 140);
             Red.Name = "Red";
-            Red.Size = new Size(100, 100);
-            Red.SizeMode = PictureBoxSizeMode.StretchImage;
+            Red.Size = new Size(103, 120);
+            Red.SizeMode = PictureBoxSizeMode.Zoom;
             Red.TabIndex = 11;
             Red.TabStop = false;
             Red.Click += Red_Click;
@@ -92,10 +92,10 @@
             // White
             // 
             White.Image = Properties.Resources.White_point;
-            White.Location = new Point(580, 160);
+            White.Location = new Point(577, 140);
             White.Name = "White";
-            White.Size = new Size(100, 100);
-            White.SizeMode = PictureBoxSizeMode.StretchImage;
+            White.Size = new Size(103, 120);
+            White.SizeMode = PictureBoxSizeMode.Zoom;
             White.TabIndex = 12;
             White.TabStop = false;
             White.Click += White_Click;
@@ -104,7 +104,7 @@
             // 
             label1.BackColor = Color.Gray;
             label1.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
-            label1.Location = new Point(215, 30);
+            label1.Location = new Point(215, 29);
             label1.Name = "label1";
             label1.Size = new Size(384, 52);
             label1.TabIndex = 13;
@@ -115,9 +115,9 @@
             // 
             playerLabel1.BackColor = Color.Gray;
             playerLabel1.Font = new Font("Segoe UI", 10F);
-            playerLabel1.Location = new Point(130, 274);
+            playerLabel1.Location = new Point(130, 275);
             playerLabel1.Name = "playerLabel1";
-            playerLabel1.Size = new Size(100, 28);
+            playerLabel1.Size = new Size(103, 27);
             playerLabel1.TabIndex = 14;
             playerLabel1.TextAlign = ContentAlignment.MiddleCenter;
             playerLabel1.Visible = false;
@@ -126,9 +126,9 @@
             // 
             playerLabel2.BackColor = Color.Gray;
             playerLabel2.Font = new Font("Segoe UI", 10F);
-            playerLabel2.Location = new Point(280, 274);
+            playerLabel2.Location = new Point(278, 275);
             playerLabel2.Name = "playerLabel2";
-            playerLabel2.Size = new Size(100, 28);
+            playerLabel2.Size = new Size(103, 27);
             playerLabel2.TabIndex = 15;
             playerLabel2.TextAlign = ContentAlignment.MiddleCenter;
             playerLabel2.Visible = false;
@@ -137,9 +137,9 @@
             // 
             playerLabel3.BackColor = Color.Gray;
             playerLabel3.Font = new Font("Segoe UI", 10F);
-            playerLabel3.Location = new Point(430, 274);
+            playerLabel3.Location = new Point(427, 275);
             playerLabel3.Name = "playerLabel3";
-            playerLabel3.Size = new Size(100, 28);
+            playerLabel3.Size = new Size(103, 27);
             playerLabel3.TabIndex = 16;
             playerLabel3.TextAlign = ContentAlignment.MiddleCenter;
             playerLabel3.Visible = false;
@@ -148,18 +148,18 @@
             // 
             playerLabel4.BackColor = Color.Gray;
             playerLabel4.Font = new Font("Segoe UI", 10F);
-            playerLabel4.Location = new Point(580, 274);
+            playerLabel4.Location = new Point(577, 275);
             playerLabel4.Name = "playerLabel4";
-            playerLabel4.Size = new Size(100, 28);
+            playerLabel4.Size = new Size(103, 27);
             playerLabel4.TabIndex = 17;
             playerLabel4.TextAlign = ContentAlignment.MiddleCenter;
             playerLabel4.Visible = false;
             // 
             // cancelButton
             // 
-            cancelButton.Location = new Point(666, 404);
+            cancelButton.Location = new Point(664, 405);
             cancelButton.Name = "cancelButton";
-            cancelButton.Size = new Size(122, 34);
+            cancelButton.Size = new Size(122, 33);
             cancelButton.TabIndex = 18;
             cancelButton.Text = "Cancel";
             cancelButton.UseVisualStyleBackColor = true;
@@ -170,7 +170,7 @@
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(64, 64, 64);
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(800, 451);
             Controls.Add(cancelButton);
             Controls.Add(playerLabel4);
             Controls.Add(playerLabel3);
