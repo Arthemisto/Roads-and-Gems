@@ -37,6 +37,7 @@ namespace Indigo
 
     internal sealed class TileStateSnapshot
     {
+        public int TileId { get; set; }
         public string Name { get; set; } = string.Empty;
         public int BoardIndex { get; set; }
         public int Rotation { get; set; }
@@ -44,10 +45,12 @@ namespace Indigo
         public int[] Neighbors { get; set; } = Array.Empty<int>();
         public int PositionX { get; set; }
         public int PositionY { get; set; }
+        public bool IsActive { get; set; }
     }
 
     internal sealed class GemStateSnapshot
     {
+        public int GemId { get; set; }
         public string Name { get; set; } = string.Empty;
         public int OnTile { get; set; }
         public int OnPath { get; set; }

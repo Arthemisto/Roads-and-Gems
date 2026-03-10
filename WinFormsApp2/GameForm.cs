@@ -38,6 +38,9 @@ namespace Indigo
         int tileNumber = -1;                                        // tile creation and movement visuals
         int lineAnimation = 0;
         int currentPlayerIndex = 0;
+        readonly int localPlayerId;
+        readonly bool isOnlineGame;
+        readonly Func<GameStateSnapshot, Task>? sendGameStateAsync;
 
         static int widthOffset = 20;
         static int heightOffset = 5;                                // persition by eye
@@ -47,15 +50,20 @@ namespace Indigo
 
         bool leftDown = false;
         bool rightDown = false;                                     // mouse buttons
+        bool applyingRemoteState = false;
+        bool pendingStateBroadcast = false;
         readonly string gameStateLogPath = Path.Combine(AppContext.BaseDirectory, "game_state_log.jsonl");
 
-        public GameForm(int[] sizesOfObjects, float percent, int playerCount)
+        internal GameForm(int[] sizesOfObjects, float percent, int playerCount, int localPlayerId = 0, Func<GameStateSnapshot, Task>? sendGameStateAsync = null)
         {
             InitializeComponent();
 
             placedTiles = new Tile[3 * rings * rings - 3 * rings + 1];
             numOfPlayers = playerCount;
             scale = percent;
+            this.localPlayerId = localPlayerId;
+            this.sendGameStateAsync = sendGameStateAsync;
+            isOnlineGame = sendGameStateAsync != null;
             SizeAdjustments(sizesOfObjects, percent);
 
             boardImage = new BoardImage();
@@ -75,6 +83,168 @@ namespace Indigo
 
             BuildStaticLayer();
             LogGameState("game_form_initialized");
+        }
+        private bool IsLocalPlayersTurn()
+        {
+            return !isOnlineGame || currentPlayerIndex == localPlayerId;
+        }
+        private bool CanConfigureOnlinePlayers()
+        {
+            return !isOnlineGame || localPlayerId == 0;
+        }
+        private void NotifyStateChanged(string reason)
+        {
+            LogGameState(reason);
+
+            if (!isOnlineGame || applyingRemoteState)
+                return;
+
+            if (movingGems.Any())
+            {
+                pendingStateBroadcast = true;
+                return;
+            }
+
+            _ = BroadcastCurrentStateAsync();
+        }
+        private async Task BroadcastCurrentStateAsync()
+        {
+            if (sendGameStateAsync == null || applyingRemoteState)
+                return;
+
+            try
+            {
+                await sendGameStateAsync(BuildGameStateSnapshot());
+                pendingStateBroadcast = false;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to broadcast game state: {ex.Message}");
+            }
+        }
+        private void RefreshPlacedTilesFromBoard()
+        {
+            placedTiles = new Tile[3 * rings * rings - 3 * rings + 1];
+            foreach (Tile tile in tiles)
+            {
+                if (tile.index >= 0 && tile.index < placedTiles.Length)
+                    placedTiles[tile.index] = tile;
+            }
+        }
+        private void ApplyTileRotationVisual(Tile tile, int rotation)
+        {
+            tile.numOfRotation = ((rotation % 6) + 6) % 6;
+            tile.picture = new Bitmap(tile.originalPic);
+
+            if (tile.numOfRotation == 0)
+                return;
+
+            if (tile.numOfRotation == 3)
+            {
+                tile.picture.RotateFlip(RotateFlipType.Rotate180FlipNone);
+                return;
+            }
+
+            tile.picture = ImageUtils.RotateHex(tile.picture, tile.numOfRotation * 60f, Tile.width, Tile.height);
+        }
+        internal void ApplyRemoteSnapshot(GameStateSnapshot snapshot)
+        {
+            if (IsDisposed)
+                return;
+
+            if (InvokeRequired)
+            {
+                BeginInvoke(() => ApplyRemoteSnapshot(snapshot));
+                return;
+            }
+
+            applyingRemoteState = true;
+
+            try
+            {
+                numOfPlayers = snapshot.PlayerCount;
+                currentPlayerIndex = snapshot.PlayerCount <= 0 ? 0 : Math.Clamp(snapshot.CurrentPlayerIndex, 0, snapshot.PlayerCount - 1);
+
+                playerColors = snapshot.Players
+                    .OrderBy(p => p.Id)
+                    .Select(p => p.Color)
+                    .ToList();
+
+                playersPoints = snapshot.Players
+                    .OrderBy(p => p.Id)
+                    .Select(p => p.Score)
+                    .ToList();
+
+                gatewayOwners = snapshot.Gateways
+                    .OrderBy(g => g.GatewayIndex)
+                    .Select(g => g.Owners.ToArray())
+                    .ToList();
+
+                if (playerColors.Any())
+                {
+                    if (!gatewayOwners.Any())
+                        gatewayOwners = CreateGatewayOwners(playerColors.Count);
+
+                    MakeTokens(playerColors);
+                    UpdatePlayerSidebar();
+                    UpdateScoreLabels();
+                    playersButton.BackColor = Color.DarkGray;
+                }
+
+                foreach (Tile tile in tiles)
+                {
+                    tile.index = -1;
+                    tile.active = false;
+                    tile.neighbors = [-1, -1, -1, -1, -1, -1];
+                    tile.gemsInside.Clear();
+                    ApplyTileRotationVisual(tile, 0);
+                }
+
+                foreach (TileStateSnapshot tileState in snapshot.PlacedTiles.OrderBy(t => t.TileId))
+                {
+                    if (tileState.TileId < 0 || tileState.TileId >= tiles.Count)
+                        continue;
+
+                    Tile tile = tiles[tileState.TileId];
+                    tile.index = tileState.BoardIndex;
+                    tile.position = new Point(tileState.PositionX, tileState.PositionY);
+                    tile.rect.X = tile.position.X;
+                    tile.rect.Y = tile.position.Y + Tile.height / 8;
+                    tile.paths = tileState.Paths.ToArray();
+                    tile.neighbors = tileState.Neighbors.ToArray();
+                    tile.active = tileState.IsActive;
+                    ApplyTileRotationVisual(tile, tileState.Rotation);
+                }
+
+                selectedTile = tiles.FirstOrDefault(t => t.active);
+                RefreshPlacedTilesFromBoard();
+
+                foreach (Gem gem in gems)
+                    gem.active = false;
+
+                foreach (GemStateSnapshot gemState in snapshot.Gems.OrderBy(g => g.GemId))
+                {
+                    if (gemState.GemId < 0 || gemState.GemId >= gems.Count)
+                        continue;
+
+                    Gem gem = gems[gemState.GemId];
+                    gem.onTile = gemState.OnTile;
+                    gem.onPath = gemState.OnPath;
+                    gem.active = gemState.IsActive;
+                    gem.position = new Point(gemState.PositionX, gemState.PositionY);
+
+                    if (gem.onTile >= 0 && gem.onTile < placedTiles.Length && placedTiles[gem.onTile] != null)
+                        placedTiles[gem.onTile].gemsInside.Add(gem);
+                }
+
+                movingGems.Clear();
+                BuildStaticLayer();
+                Board.Invalidate();
+            }
+            finally
+            {
+                applyingRemoteState = false;
+            }
         }
         private void SetUpPlayerUi()
         {
@@ -644,11 +814,14 @@ namespace Indigo
                 playersPoints[owner] += score;
 
             UpdateScoreLabels();
-            LogGameState("score_updated");
+            NotifyStateChanged("score_updated");
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
+            if (!IsLocalPlayersTurn())
+                return;
+
             if (selectedTile == null)
                 return;
 
@@ -681,9 +854,15 @@ namespace Indigo
                     debugLabel2.Text += ", " + selectedTile.paths[i + 1];
                 debugLabel2.Text += "]";
             }
+
+            Board.Invalidate();
+            NotifyStateChanged("tile_rotated");
         }
         private void BoardMouseDown(object sender, MouseEventArgs e)
         {
+            if (!IsLocalPlayersTurn())
+                return;
+
             if (hideMode)
                 return;
 
@@ -693,7 +872,11 @@ namespace Indigo
                 rightDown = true;
 
             if (rightDown && selectedTile != null)
+            {
                 RotateTile(selectedTile, true);
+                Board.Invalidate();
+                NotifyStateChanged("tile_rotated");
+            }
 
             if (leftDown)
             {
@@ -713,6 +896,9 @@ namespace Indigo
         }
         private void BoardMouseMove(object sender, MouseEventArgs e)
         {
+            if (!IsLocalPlayersTurn())
+                return;
+
             if (leftDown && selectedTile != null && Board.DisplayRectangle.Contains(e.X, e.Y))
             {
                 selectedTile.position.X = e.X - (Tile.width / 2);
@@ -725,6 +911,9 @@ namespace Indigo
         }
         private void BoardMouseUp(object sender, MouseEventArgs e)
         {
+            if (!IsLocalPlayersTurn())
+                return;
+
             if (e.Button == MouseButtons.Left)
                 leftDown = false;
             if (e.Button == MouseButtons.Right)
@@ -744,6 +933,8 @@ namespace Indigo
 
                 if (placedSuccessfully && playerTokens.Any())
                     AdvanceTurn();
+
+                NotifyStateChanged(placedSuccessfully ? "tile_placed" : "tile_released");
             }
 
             BuildStaticLayer();
@@ -791,6 +982,8 @@ namespace Indigo
             if (!movingGems.Any())
             {
                 GemTimer.Stop();
+                if (pendingStateBroadcast)
+                    _ = BroadcastCurrentStateAsync();
                 return;
             }
             Gem gem = movingGems[0];
@@ -841,7 +1034,9 @@ namespace Indigo
                     movingGems.Remove(gem);
                     m1.t = 0f;
                     m1.speed = 1f;
-                    LogGameState("gem_movement_aborted_missing_next_tile");
+                    NotifyStateChanged("gem_movement_aborted_missing_next_tile");
+                    if (!movingGems.Any() && pendingStateBroadcast)
+                        _ = BroadcastCurrentStateAsync();
                     return;
                 }
 
@@ -881,12 +1076,14 @@ namespace Indigo
                             gems.Remove(gem);
                             movingGems.Remove(anotherGem);
                             movingGems.Remove(gem);
-                            LogGameState("gem_collision");
+                            NotifyStateChanged("gem_collision");
+                            if (!movingGems.Any() && pendingStateBroadcast)
+                                _ = BroadcastCurrentStateAsync();
                             return;
                         }
 
                 BuildStaticLayer();
-                LogGameState("gem_movement_resolved");
+                NotifyStateChanged("gem_movement_resolved");
                 return;
             }
 
@@ -1091,6 +1288,9 @@ namespace Indigo
 
         private void PlayersButton_Click(object sender, EventArgs e)
         {
+            if (!CanConfigureOnlinePlayers())
+                return;
+
             if (player0.Image != null)
                 return;
 
@@ -1115,7 +1315,7 @@ namespace Indigo
 
                     BuildStaticLayer();
                     Board.Invalidate();
-                    LogGameState("players_configured");
+                    NotifyStateChanged("players_configured");
                 }
             }
         }
@@ -1204,23 +1404,25 @@ namespace Indigo
             }
 
             List<TileStateSnapshot> placedTileStates = tiles
-                .Where(t => t.index >= 0)
-                .Select(t => new TileStateSnapshot
+                .Select((t, index) => new TileStateSnapshot
                 {
+                    TileId = index,
                     Name = t.name,
                     BoardIndex = t.index,
                     Rotation = t.numOfRotation,
                     Paths = t.paths.ToArray(),
                     Neighbors = t.neighbors.ToArray(),
                     PositionX = t.position.X,
-                    PositionY = t.position.Y
+                    PositionY = t.position.Y,
+                    IsActive = t.active
                 })
-                .OrderBy(t => t.BoardIndex)
+                .OrderBy(t => t.TileId)
                 .ToList();
 
             List<GemStateSnapshot> gemStates = gems
-                .Select(g => new GemStateSnapshot
+                .Select((g, index) => new GemStateSnapshot
                 {
+                    GemId = index,
                     Name = g.name,
                     OnTile = g.onTile,
                     OnPath = g.onPath,

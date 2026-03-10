@@ -17,5 +17,6 @@ namespace Indigo
         public string? SessionName { get; set; }
         public string? PlayerName { get; set; }
         public List<OnlinePlayerInfo> Players { get; set; } = new List<OnlinePlayerInfo>();
+        public GameStateSnapshot? State { get; set; }
     }
 }

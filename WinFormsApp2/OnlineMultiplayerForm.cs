@@ -17,10 +17,12 @@ namespace Indigo
         private StreamWriter? clientWriter;
         private CancellationTokenSource? hostCts;
         private CancellationTokenSource? clientCts;
+        private GameForm? activeGameForm;
         private string sessionName = "Indigo Session";
         private bool isHosting;
         private bool isConnectedAsClient;
         private bool isLaunchingGame;
+        private int localPlayerId;
         private int maxPlayers = 4;
         private readonly int[] sizesOfObjects =
         [
@@ -66,6 +68,7 @@ namespace Indigo
                     Name = playerName,
                     IsHost = true
                 });
+                localPlayerId = 0;
 
                 startHostingButton.Enabled = false;
                 stopHostingButton.Enabled = true;
@@ -202,6 +205,8 @@ namespace Indigo
                     OnlineSessionEnvelope? message = DeserializeEnvelope(clientLine);
                     if (message?.Type == "leave")
                         break;
+                    if (message?.Type == "game_state" && message.State != null)
+                        await HandleClientGameStateAsync(connection.Player.PlayerId, message.State);
                 }
             }
             catch (OperationCanceledException)
@@ -305,6 +310,7 @@ namespace Indigo
                 hostClients.Clear();
                 connectedPlayers.Clear();
                 isHosting = false;
+                localPlayerId = 0;
 
                 startHostingButton.Enabled = true;
                 stopHostingButton.Enabled = false;
@@ -365,6 +371,7 @@ namespace Indigo
                 }
 
                 maxPlayers = Math.Clamp(response.MaxPlayers ?? 4, 2, 4);
+                localPlayerId = response.PlayerId ?? 0;
                 isConnectedAsClient = true;
                 connectButton.Enabled = false;
                 disconnectButton.Enabled = true;
@@ -410,6 +417,10 @@ namespace Indigo
                         AppendLog($"Host started a match for {playerCount} players.");
                         joinStatusLabel.Text = $"Starting game for {playerCount} players...";
                         BeginInvoke(() => LaunchOnlineGame(playerCount));
+                    }
+                    else if (envelope.Type == "game_state" && envelope.State != null)
+                    {
+                        activeGameForm?.ApplyRemoteSnapshot(envelope.State);
                     }
                     else if (envelope.Type == "session_closed")
                     {
@@ -460,6 +471,7 @@ namespace Indigo
                 clientConnection = null;
                 clientWriter = null;
                 isConnectedAsClient = false;
+                localPlayerId = 0;
                 connectedPlayers.Clear();
                 connectButton.Enabled = true;
                 disconnectButton.Enabled = false;
@@ -592,6 +604,37 @@ namespace Indigo
             }
         }
 
+        private async Task HandleClientGameStateAsync(int playerId, GameStateSnapshot snapshot)
+        {
+            if (activeGameForm != null && !activeGameForm.IsDisposed)
+                activeGameForm.ApplyRemoteSnapshot(snapshot);
+
+            await BroadcastEnvelopeToClientsAsync(new OnlineSessionEnvelope
+            {
+                Type = "game_state",
+                PlayerId = playerId,
+                State = snapshot
+            });
+        }
+
+        private Task SendGameStateAsync(GameStateSnapshot snapshot)
+        {
+            OnlineSessionEnvelope envelope = new OnlineSessionEnvelope
+            {
+                Type = "game_state",
+                PlayerId = localPlayerId,
+                State = snapshot
+            };
+
+            if (isHosting)
+                return BroadcastEnvelopeToClientsAsync(envelope);
+
+            if (clientWriter == null)
+                return Task.CompletedTask;
+
+            return SendEnvelopeAsync(clientWriter, envelope, clientCts?.Token ?? CancellationToken.None);
+        }
+
         private void LaunchOnlineGame(int playerCount)
         {
             if (isLaunchingGame)
@@ -601,7 +644,8 @@ namespace Indigo
             formRefreshTimer.Stop();
             ToggleLobbyControls(false);
 
-            using GameForm gameForm = new GameForm(sizesOfObjects, GameScale, playerCount);
+            using GameForm gameForm = new GameForm(sizesOfObjects, GameScale, playerCount, localPlayerId, SendGameStateAsync);
+            activeGameForm = gameForm;
             Hide();
             try
             {
@@ -609,6 +653,7 @@ namespace Indigo
             }
             finally
             {
+                activeGameForm = null;
                 Show();
                 formRefreshTimer.Start();
                 isLaunchingGame = false;

@@ -13,6 +13,7 @@ Windows Forms implementation of the board game Indigo, built with .NET 8.
 - Host-side player limit enforcement up to 4 players
 - Connected player list and session log
 - Host-controlled online match start that opens the game for all connected players
+- Snapshot-based online gameplay synchronization for colors, tiles, gems, turns, and score
 
 ## Tech Stack
 
@@ -70,9 +71,9 @@ dotnet WinFormsApp2/bin/Debug/net8.0-windows/Indigo.dll
 3. Click `Start Game`.
 4. Click `Choose players` inside the game and assign colors.
 
-## Online Multiplayer Lobby
+## Online Multiplayer
 
-The project includes a network lobby and synchronized match launch, but not full network-synced gameplay yet.
+The project includes a TCP lobby plus snapshot-based gameplay synchronization after the match starts.
 
 ### Host
 
@@ -97,7 +98,9 @@ The project includes a network lobby and synchronized match launch, but not full
 - Host acts as the server
 - Enforces max 4 players on the host side
 - Lets the host launch a match for all connected players at the same time
-- Does not yet synchronize live gameplay between machines
+- Synchronizes player color setup between machines
+- Synchronizes tile rotation, drag-release placement, gem movement, active turn, and score updates
+- Applies remote game snapshots on connected clients during the match
 
 ## Game State Logging
 
@@ -117,16 +120,16 @@ Each line is a JSON object containing:
 - gateway ownership
 - other runtime state
 
-This exists to support future save/load, replay, and multiplayer synchronization work.
+This supports debugging, replay-oriented inspection, and online state synchronization.
 
 ## Known Limitations
 
-- Online lobby is implemented, but network gameplay sync is not finished yet
+- Online sync currently uses full state snapshots over TCP rather than compact move commands
 - The project currently targets Windows only
 - Some UI layout values are still hand-tuned for the current board scale and form layout
 
 ## Planned Next Steps
 
 - Host-authoritative multiplayer gameplay
-- Sending moves and commands over the network
+- Replacing full-state sync with move/command replication
 - Restoring game state from snapshots
