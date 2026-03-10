@@ -42,6 +42,7 @@ namespace Indigo
             InitializeComponent();
             playerNameTextBox.Text = $"{Environment.UserName}";
             RefreshPlayerList();
+            UpdateHostShareTargets();
         }
 
         private async void startHostingButton_Click(object sender, EventArgs e)
@@ -74,7 +75,7 @@ namespace Indigo
                 stopHostingButton.Enabled = true;
                 connectButton.Enabled = false;
                 hostStatusLabel.Text = $"Hosting active. Max players: {maxPlayers}";
-                hostInfoLabel.Text = $"Share with players:\r\nIPs: {string.Join(", ", GetLocalIpv4Addresses())}\r\nPort: {port}\r\nHost counts as player 1";
+                UpdateHostShareTargets();
 
                 AppendLog($"Host started on port {port} with max {maxPlayers} players.");
                 RefreshPlayerList();
@@ -316,7 +317,7 @@ namespace Indigo
                 stopHostingButton.Enabled = false;
                 connectButton.Enabled = true;
                 hostStatusLabel.Text = "Host idle";
-                hostInfoLabel.Text = "Start hosting to see IP and port";
+                UpdateHostShareTargets();
                 AppendLog("Host stopped.");
                 RefreshPlayerList();
             }
@@ -330,6 +331,14 @@ namespace Indigo
             string playerName = NormalizePlayerName();
             string ip = joinIpTextBox.Text.Trim();
             int port = (int)joinPortInput.Value;
+
+            if (TryParseEndpoint(ip, out string parsedIp, out int parsedPort))
+            {
+                ip = parsedIp;
+                port = parsedPort;
+                joinIpTextBox.Text = parsedIp;
+                joinPortInput.Value = parsedPort;
+            }
 
             try
             {
@@ -543,6 +552,29 @@ namespace Indigo
             return trimmed;
         }
 
+        private static bool TryParseEndpoint(string rawValue, out string ip, out int port)
+        {
+            ip = rawValue;
+            port = 0;
+
+            int separatorIndex = rawValue.LastIndexOf(':');
+            if (separatorIndex <= 0 || separatorIndex >= rawValue.Length - 1)
+                return false;
+
+            string candidateIp = rawValue[..separatorIndex].Trim();
+            string candidatePort = rawValue[(separatorIndex + 1)..].Trim();
+
+            if (!int.TryParse(candidatePort, out int parsedPort))
+                return false;
+
+            if (parsedPort < 1024 || parsedPort > 65535)
+                return false;
+
+            ip = candidateIp;
+            port = parsedPort;
+            return true;
+        }
+
         private void RefreshPlayerList()
         {
             if (InvokeRequired)
@@ -565,6 +597,38 @@ namespace Indigo
                 return;
 
             hostStatusLabel.Text = $"Hosting active. Players: {connectedPlayers.Count}/{maxPlayers}";
+        }
+
+        private void UpdateHostShareTargets()
+        {
+            hostIpListBox.Items.Clear();
+
+            if (!isHosting)
+            {
+                hostInfoLabel.Text = "Start hosting to see available IP addresses";
+                copyHostIpButton.Enabled = false;
+                return;
+            }
+
+            int port = (int)hostPortInput.Value;
+            hostInfoLabel.Text = $"Share one of these with players. Port: {port}";
+
+            foreach (string ip in GetLocalIpv4Addresses())
+                hostIpListBox.Items.Add($"{ip}:{port}");
+
+            if (hostIpListBox.Items.Count > 0)
+                hostIpListBox.SelectedIndex = 0;
+
+            copyHostIpButton.Enabled = hostIpListBox.Items.Count > 0;
+        }
+
+        private void copyHostIpButton_Click(object? sender, EventArgs e)
+        {
+            if (hostIpListBox.SelectedItem is not string selectedEndpoint)
+                return;
+
+            Clipboard.SetText(selectedEndpoint);
+            AppendLog($"Copied host endpoint: {selectedEndpoint}");
         }
 
         private async void startGameButton_Click(object sender, EventArgs e)

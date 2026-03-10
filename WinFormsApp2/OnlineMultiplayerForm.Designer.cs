@@ -25,6 +25,8 @@ namespace Indigo
             hostPage = new TabPage();
             hostStatusLabel = new Label();
             hostInfoLabel = new Label();
+            hostIpListBox = new ListBox();
+            copyHostIpButton = new Button();
             stopHostingButton = new Button();
             startHostingButton = new Button();
             hostPortInput = new NumericUpDown();
@@ -99,6 +101,8 @@ namespace Indigo
             // 
             hostPage.BackColor = Color.FromArgb(80, 80, 80);
             hostPage.Controls.Add(hostStatusLabel);
+            hostPage.Controls.Add(copyHostIpButton);
+            hostPage.Controls.Add(hostIpListBox);
             hostPage.Controls.Add(hostInfoLabel);
             hostPage.Controls.Add(stopHostingButton);
             hostPage.Controls.Add(startHostingButton);
@@ -116,9 +120,9 @@ namespace Indigo
             // hostStatusLabel
             // 
             hostStatusLabel.BackColor = Color.Gray;
-            hostStatusLabel.Location = new Point(16, 230);
+            hostStatusLabel.Location = new Point(16, 247);
             hostStatusLabel.Name = "hostStatusLabel";
-            hostStatusLabel.Size = new Size(377, 60);
+            hostStatusLabel.Size = new Size(377, 43);
             hostStatusLabel.TabIndex = 7;
             hostStatusLabel.Text = "Host idle";
             // 
@@ -127,9 +131,30 @@ namespace Indigo
             hostInfoLabel.BackColor = Color.Gray;
             hostInfoLabel.Location = new Point(16, 102);
             hostInfoLabel.Name = "hostInfoLabel";
-            hostInfoLabel.Size = new Size(377, 112);
+            hostInfoLabel.Size = new Size(377, 27);
             hostInfoLabel.TabIndex = 6;
-            hostInfoLabel.Text = "Start hosting to see IP and port";
+            hostInfoLabel.Text = "Start hosting to see available IP addresses";
+            hostInfoLabel.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // hostIpListBox
+            // 
+            hostIpListBox.FormattingEnabled = true;
+            hostIpListBox.Location = new Point(16, 139);
+            hostIpListBox.Name = "hostIpListBox";
+            hostIpListBox.Size = new Size(377, 64);
+            hostIpListBox.TabIndex = 8;
+            hostIpListBox.DoubleClick += copyHostIpButton_Click;
+            // 
+            // copyHostIpButton
+            // 
+            copyHostIpButton.Enabled = false;
+            copyHostIpButton.Location = new Point(16, 209);
+            copyHostIpButton.Name = "copyHostIpButton";
+            copyHostIpButton.Size = new Size(377, 32);
+            copyHostIpButton.TabIndex = 9;
+            copyHostIpButton.Text = "Copy Selected IP";
+            copyHostIpButton.UseVisualStyleBackColor = true;
+            copyHostIpButton.Click += copyHostIpButton_Click;
             // 
             // stopHostingButton
             // 
@@ -391,6 +416,8 @@ namespace Indigo
         private Button startHostingButton;
         private Label hostInfoLabel;
         private Label hostStatusLabel;
+        private ListBox hostIpListBox;
+        private Button copyHostIpButton;
         private Button disconnectButton;
         private Label joinStatusLabel;
         private Button connectButton;
