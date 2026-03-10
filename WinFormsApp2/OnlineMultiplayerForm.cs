@@ -20,7 +20,20 @@ namespace Indigo
         private string sessionName = "Indigo Session";
         private bool isHosting;
         private bool isConnectedAsClient;
+        private bool isLaunchingGame;
         private int maxPlayers = 4;
+        private readonly int[] sizesOfObjects =
+        [
+            BoardImage.width,
+            BoardImage.height,
+            Tile.width,
+            Tile.height,
+            Gem.width,
+            Gem.height,
+            PlayerToken.width,
+            PlayerToken.height
+        ];
+        private const float GameScale = 0.9f;
 
         public OnlineMultiplayerForm()
         {
@@ -391,6 +404,13 @@ namespace Indigo
                         joinStatusLabel.Text = $"Connected. Players: {connectedPlayers.Count}/{maxPlayers}";
                         RefreshPlayerList();
                     }
+                    else if (envelope.Type == "start_game")
+                    {
+                        int playerCount = Math.Clamp(envelope.PlayerCount ?? connectedPlayers.Count, 2, 4);
+                        AppendLog($"Host started a match for {playerCount} players.");
+                        joinStatusLabel.Text = $"Starting game for {playerCount} players...";
+                        BeginInvoke(() => LaunchOnlineGame(playerCount));
+                    }
                     else if (envelope.Type == "session_closed")
                     {
                         AppendLog(envelope.Message ?? "Session closed by host.");
@@ -535,6 +555,87 @@ namespace Indigo
             hostStatusLabel.Text = $"Hosting active. Players: {connectedPlayers.Count}/{maxPlayers}";
         }
 
+        private async void startGameButton_Click(object sender, EventArgs e)
+        {
+            if (!isHosting || connectedPlayers.Count < 2 || isLaunchingGame)
+                return;
+
+            int playerCount = connectedPlayers.Count;
+            AppendLog($"Starting online match with {playerCount} players.");
+
+            await BroadcastEnvelopeToClientsAsync(new OnlineSessionEnvelope
+            {
+                Type = "start_game",
+                PlayerCount = playerCount,
+                SessionName = sessionName
+            });
+
+            LaunchOnlineGame(playerCount);
+        }
+
+        private async Task BroadcastEnvelopeToClientsAsync(OnlineSessionEnvelope envelope)
+        {
+            List<HostClientConnection> clientsSnapshot;
+            lock (hostClients)
+                clientsSnapshot = hostClients.ToList();
+
+            foreach (HostClientConnection client in clientsSnapshot)
+            {
+                try
+                {
+                    await SendEnvelopeAsync(client.Writer, envelope, hostCts?.Token ?? CancellationToken.None);
+                }
+                catch
+                {
+                    RemoveHostClient(client.Player.PlayerId, $"{client.Player.Name} dropped during broadcast.");
+                }
+            }
+        }
+
+        private void LaunchOnlineGame(int playerCount)
+        {
+            if (isLaunchingGame)
+                return;
+
+            isLaunchingGame = true;
+            formRefreshTimer.Stop();
+            ToggleLobbyControls(false);
+
+            using GameForm gameForm = new GameForm(sizesOfObjects, GameScale, playerCount);
+            Hide();
+            try
+            {
+                gameForm.ShowDialog(this);
+            }
+            finally
+            {
+                Show();
+                formRefreshTimer.Start();
+                isLaunchingGame = false;
+                ToggleLobbyControls(true);
+                RefreshPlayerList();
+                UpdateControlStates();
+            }
+        }
+
+        private void ToggleLobbyControls(bool enabled)
+        {
+            playerNameTextBox.Enabled = enabled;
+            lobbyTabs.Enabled = enabled;
+            closeButton.Enabled = enabled;
+            playersListBox.Enabled = enabled;
+            startGameButton.Enabled = enabled && isHosting && connectedPlayers.Count >= 2;
+        }
+
+        private void UpdateControlStates()
+        {
+            startHostingButton.Enabled = !isHosting && !isConnectedAsClient && !isLaunchingGame;
+            stopHostingButton.Enabled = isHosting && !isLaunchingGame;
+            connectButton.Enabled = !isHosting && !isConnectedAsClient && !isLaunchingGame;
+            disconnectButton.Enabled = isConnectedAsClient && !isLaunchingGame;
+            startGameButton.Enabled = isHosting && connectedPlayers.Count >= 2 && !isLaunchingGame;
+        }
+
         private void AppendLog(string message)
         {
             if (InvokeRequired)
@@ -564,6 +665,9 @@ namespace Indigo
         private async void OnlineMultiplayerForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             formRefreshTimer.Stop();
+            if (isLaunchingGame)
+                return;
+
             await DisconnectClientAsync(true);
             await StopHostingAsync();
         }
@@ -577,6 +681,8 @@ namespace Indigo
         {
             if (isHosting)
                 UpdateHostStatus();
+
+            UpdateControlStates();
         }
 
         private sealed class HostClientConnection

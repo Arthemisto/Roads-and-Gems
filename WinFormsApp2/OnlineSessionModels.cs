@@ -12,6 +12,7 @@ namespace Indigo
         public string Type { get; set; } = string.Empty;
         public string? Message { get; set; }
         public int? PlayerId { get; set; }
+        public int? PlayerCount { get; set; }
         public int? MaxPlayers { get; set; }
         public string? SessionName { get; set; }
         public string? PlayerName { get; set; }

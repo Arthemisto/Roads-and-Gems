@@ -43,6 +43,7 @@ namespace Indigo
             playersListBox = new ListBox();
             logLabel = new Label();
             logTextBox = new TextBox();
+            startGameButton = new Button();
             closeButton = new Button();
             formRefreshTimer = new System.Windows.Forms.Timer(components);
             lobbyTabs.SuspendLayout();
@@ -316,12 +317,23 @@ namespace Indigo
             logTextBox.Size = new Size(200, 264);
             logTextBox.TabIndex = 7;
             // 
+            // startGameButton
+            // 
+            startGameButton.Enabled = false;
+            startGameButton.Location = new Point(462, 459);
+            startGameButton.Name = "startGameButton";
+            startGameButton.Size = new Size(200, 36);
+            startGameButton.TabIndex = 8;
+            startGameButton.Text = "Start Online Game";
+            startGameButton.UseVisualStyleBackColor = true;
+            startGameButton.Click += startGameButton_Click;
+            // 
             // closeButton
             // 
             closeButton.Location = new Point(685, 459);
             closeButton.Name = "closeButton";
             closeButton.Size = new Size(175, 36);
-            closeButton.TabIndex = 8;
+            closeButton.TabIndex = 9;
             closeButton.Text = "Close";
             closeButton.UseVisualStyleBackColor = true;
             closeButton.Click += closeButton_Click;
@@ -338,6 +350,7 @@ namespace Indigo
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(64, 64, 64);
             ClientSize = new Size(884, 514);
+            Controls.Add(startGameButton);
             Controls.Add(closeButton);
             Controls.Add(logTextBox);
             Controls.Add(logLabel);
@@ -389,6 +402,7 @@ namespace Indigo
         private ListBox playersListBox;
         private Label logLabel;
         private TextBox logTextBox;
+        private Button startGameButton;
         private Button closeButton;
         private System.Windows.Forms.Timer formRefreshTimer;
     }
