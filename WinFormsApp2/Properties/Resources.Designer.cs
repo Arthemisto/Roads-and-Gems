@@ -173,6 +173,16 @@ namespace Indigo.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Lose {
+            get {
+                object obj = ResourceManager.GetObject("Lose", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap OneWay_tile {
             get {
                 object obj = ResourceManager.GetObject("OneWay_tile", resourceCulture);
@@ -246,6 +256,16 @@ namespace Indigo.Properties {
         internal static System.Drawing.Bitmap White_point {
             get {
                 object obj = ResourceManager.GetObject("White_point", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Win {
+            get {
+                object obj = ResourceManager.GetObject("Win", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

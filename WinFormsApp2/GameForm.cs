@@ -38,6 +38,7 @@ namespace Indigo
         int tileNumber = -1;                                        // tile creation and movement visuals
         int lineAnimation = 0;
         int currentPlayerIndex = 0;
+        int gemsLeft = 0;
         readonly int localPlayerId;
         readonly bool isOnlineGame;
         readonly Func<GameStateSnapshot, Task>? sendGameStateAsync;
@@ -341,8 +342,11 @@ namespace Indigo
             picNumbers.Insert(7, picNumbers[7]);
 
             for (int i = 0; i < totalGems; i++)
+            {
                 MakeGems(i);
-
+                gemsLeft++;
+            }
+                
             debugLabel1.Text = "                (w by h) \nWindow: " + Width + " by " + Height +
                 "\nBoard: \t\t" + Board.Width + " by " + Board.Height +
                 "\nBoardImage: " + BoardImage.width + " by " + BoardImage.height;
@@ -815,6 +819,24 @@ namespace Indigo
 
             UpdateScoreLabels();
             NotifyStateChanged("score_updated");
+
+            gemsLeft--;
+            if (gemsLeft == 0)
+                GameEnd();
+        }
+        private void GameEnd()
+        {
+            bool youWon = true;
+
+            for (int i = 0; i < numOfPlayers; i++)
+                if (playersPoints[localPlayerId] < playersPoints[i])
+                    youWon = false;
+
+            using (var form = new GameEndForm(youWon)) 
+            {
+                if (form.ShowDialog() == DialogResult.OK)
+                    Close();
+            };
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -1076,9 +1098,15 @@ namespace Indigo
                             gems.Remove(gem);
                             movingGems.Remove(anotherGem);
                             movingGems.Remove(gem);
+
                             NotifyStateChanged("gem_collision");
                             if (!movingGems.Any() && pendingStateBroadcast)
                                 _ = BroadcastCurrentStateAsync();
+
+                            gemsLeft -= 2;
+                            if (gemsLeft == 0)
+                                GameEnd();
+
                             return;
                         }
 
