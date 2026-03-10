@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
+using System.Text.Json;
 
 namespace Indigo
 {
@@ -14,11 +16,15 @@ namespace Indigo
         Tile[] placedTiles;
         List<Gem> movingGems = new List<Gem>();                     // additional lists of objects
         List<float> playersPoints = new List<float>();
+        List<PictureBox> playerIcons = new List<PictureBox>();
+        List<Label> playerScoreLabels = new List<Label>();
+        List<string> playerColors = new List<string>();
+        List<int[]> gatewayOwners = new List<int[]>();
 
         BoardImage boardImage;
-        Tile selectedTile;                                          // important objects
+        Tile? selectedTile;                                         // important objects
         Movement m1 = new Movement();
-        Bitmap staticLayer;
+        Bitmap? staticLayer;
 
         int rings = 5;
         int totalTiles = 0;
@@ -31,6 +37,7 @@ namespace Indigo
         int boardSeparation = 20;
         int tileNumber = -1;                                        // tile creation and movement visuals
         int lineAnimation = 0;
+        int currentPlayerIndex = 0;
 
         static int widthOffset = 20;
         static int heightOffset = 5;                                // persition by eye
@@ -40,6 +47,7 @@ namespace Indigo
 
         bool leftDown = false;
         bool rightDown = false;                                     // mouse buttons
+        readonly string gameStateLogPath = Path.Combine(AppContext.BaseDirectory, "game_state_log.jsonl");
 
         public GameForm(int[] sizesOfObjects, float percent, int playerCount)
         {
@@ -63,8 +71,15 @@ namespace Indigo
             points = CreateHexGrid(center, rings, distanceFromCtoC);
 
             SetUpApp();
+            SetUpPlayerUi();
 
             BuildStaticLayer();
+            LogGameState("game_form_initialized");
+        }
+        private void SetUpPlayerUi()
+        {
+            playerIcons = [player0, player1, player2, player3];
+            playerScoreLabels = [playerScore0, playerScore1, playerScore2, playerScore3];
         }
         private void SizeAdjustments(int[] sizesOfObjects, float percent)
         {
@@ -258,21 +273,14 @@ namespace Indigo
         }
         private void MakeTokens(List<string> colors)
         {
-            //will break if numOfPlayers = 3 and 4
+            playerTokens.Clear();
+            playerColors = new List<string>(colors);
+            gatewayOwners = CreateGatewayOwners(colors.Count);
 
-            int numOfPlayers = colors.Count;
-
-            if (numOfPlayers == 2)
+            foreach (int[] owners in gatewayOwners)
             {
-                for (int i = 0; i < 6; i++)
-                {
-                    int playerNumber = i % numOfPlayers;
-                    PlayerToken token = new PlayerToken(playerNumber, colors[playerNumber]);
-                    playerTokens.Add(token);
-
-                    token = new PlayerToken(playerNumber, colors[playerNumber]);
-                    playerTokens.Add(token);
-                }
+                foreach (int owner in owners)
+                    playerTokens.Add(new PlayerToken(owner, colors[owner]));
             }
 
             var r = Tile.height / 2 * 3 - 5;
@@ -289,6 +297,44 @@ namespace Indigo
                 numOfRotations--;
                 i++;
             }
+        }
+        private List<int[]> CreateGatewayOwners(int playerCount)
+        {
+            return playerCount switch
+            {
+                2 =>
+                [
+                    [0, 0],
+                    [1, 1],
+                    [0, 0],
+                    [1, 1],
+                    [0, 0],
+                    [1, 1]
+                ],
+                3 =>
+                [
+                    [0, 0],
+                    [0, 1],
+                    [2, 2],
+                    [2, 0],
+                    [1, 1],
+                    [1, 2]
+                ],
+                4 =>
+                [
+                    [0, 1],
+                    [1, 2],
+                    [0, 3],
+                    [3, 1],
+                    [2, 0],
+                    [2, 3]
+                ],
+                _ => throw new InvalidOperationException($"Unsupported player count: {playerCount}")
+            };
+        }
+        private Image GetPlayerPicture(int playerIndex)
+        {
+            return new PlayerToken(playerIndex, playerColors[playerIndex]).picture;
         }
         public Vector2[] CreateHexGrid(Vector2 center, int totalNumOfRings, float originalR)
         {
@@ -370,17 +416,17 @@ namespace Indigo
 
             return realNeighbors;
         }
-        private void Snap(Tile tile)
+        private bool Snap(Tile tile)
         {
             Vector2 pos = new Vector2(tile.position.X + Tile.width / 2, tile.position.Y + Tile.height / 2);
             int index = GetClosestIndex(pos);
 
             if (index < 0 || placedTiles[index] != null)
-                return;
+                return false;
 
             if (index >= 43)
                 if (!BorderApproved(tile, index))
-                    return;
+                    return false;
 
             tile.index = index;
             Vector2 new_pos = points[index];
@@ -393,9 +439,53 @@ namespace Indigo
 
             List<int> neighborIndexies = FindNeighbors(new_pos);
             if (!neighborIndexies.Any())
-                return;
+                return true;
 
             EventsAfterPlacement(tile, neighborIndexies);
+            return true;
+        }
+        private void ShowCurrentTurnBanner()
+        {
+            if (numOfPlayers <= 0 || !playerColors.Any())
+                return;
+
+            turnBanner.Text = $"Player {currentPlayerIndex + 1} turn";
+            turnBanner.Visible = true;
+            turnBanner.BringToFront();
+            TurnBannerTimer.Stop();
+            TurnBannerTimer.Start();
+            LogGameState("turn_banner_shown");
+        }
+        private void AdvanceTurn()
+        {
+            if (numOfPlayers <= 0)
+                return;
+
+            currentPlayerIndex = (currentPlayerIndex + 1) % numOfPlayers;
+            ShowCurrentTurnBanner();
+        }
+        private void UpdateScoreLabels()
+        {
+            for (int i = 0; i < playerScoreLabels.Count; i++)
+            {
+                if (i < playersPoints.Count)
+                    playerScoreLabels[i].Text = " " + (int)playersPoints[i];
+            }
+        }
+        private void UpdatePlayerSidebar()
+        {
+            for (int i = 0; i < playerIcons.Count; i++)
+            {
+                bool isUsed = i < numOfPlayers && i < playerColors.Count;
+                playerIcons[i].Visible = isUsed;
+                playerScoreLabels[i].Visible = isUsed;
+
+                if (!isUsed)
+                    continue;
+
+                playerIcons[i].Image = GetPlayerPicture(i);
+                playerScoreLabels[i].Text = " 0";
+            }
         }
         private void EventsAfterPlacement(Tile placedTile, List<int> neighborIndexies)
         {
@@ -550,21 +640,11 @@ namespace Indigo
             else
                 score = 1;
 
-            var player1 = playerTokens[border * 2].playerNumber;
-            var player2 = playerTokens[border * 2 + 1].playerNumber;
+            foreach (int owner in gatewayOwners[border].Distinct())
+                playersPoints[owner] += score;
 
-            if (player1 == player2)
-                score /= 2;
-
-            var pl = player1;
-            for (int i = 0; i < numOfPlayers; i++)
-            {
-                playersPoints[pl] += score;
-                pl = player2;
-            }
-
-            playerScore0.Text = " " + (int)playersPoints[0];
-            playerScore1.Text = " " + (int)playersPoints[1];
+            UpdateScoreLabels();
+            LogGameState("score_updated");
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -650,17 +730,20 @@ namespace Indigo
             if (e.Button == MouseButtons.Right)
                 rightDown = false;
 
-            Tile temp = null;
+            Tile? temp = null;
 
             if (!leftDown && selectedTile != null)
             {
-                Snap(selectedTile);
+                bool placedSuccessfully = Snap(selectedTile);
                 temp = selectedTile;
 
                 selectedTile.active = false;
                 selectedTile = null;
 
                 lineAnimation = 0;
+
+                if (placedSuccessfully && playerTokens.Any())
+                    AdvanceTurn();
             }
 
             BuildStaticLayer();
@@ -753,6 +836,15 @@ namespace Indigo
 
             if (m1.t > 1f)                          // if reached the end of road
             {
+                if (m1.nextTile == null)
+                {
+                    movingGems.Remove(gem);
+                    m1.t = 0f;
+                    m1.speed = 1f;
+                    LogGameState("gem_movement_aborted_missing_next_tile");
+                    return;
+                }
+
                 gem.onPath = m1.willExitBy;
                 gem.onTile = m1.nextTile.index;
 
@@ -789,10 +881,12 @@ namespace Indigo
                             gems.Remove(gem);
                             movingGems.Remove(anotherGem);
                             movingGems.Remove(gem);
+                            LogGameState("gem_collision");
                             return;
                         }
 
                 BuildStaticLayer();
+                LogGameState("gem_movement_resolved");
                 return;
             }
 
@@ -1006,13 +1100,13 @@ namespace Indigo
                 {
                     MakeTokens(form.playerColors);
 
-                    player0.Image = playerTokens[0].picture;
-                    playersPoints.Add(0);
-                    playerScore0.Text = " 0";
-
-                    player1.Image = playerTokens[numOfPlayers].picture;
-                    playersPoints.Add(0);
-                    playerScore1.Text = " 0";
+                    playersPoints.Clear();
+                    for (int i = 0; i < numOfPlayers; i++)
+                        playersPoints.Add(0);
+                    UpdatePlayerSidebar();
+                    UpdateScoreLabels();
+                    currentPlayerIndex = 0;
+                    ShowCurrentTurnBanner();
 
                     foreach (var gem in gems.Where(g => g.onTile >= 43))
                         ScoreUpdate(gem);
@@ -1021,6 +1115,7 @@ namespace Indigo
 
                     BuildStaticLayer();
                     Board.Invalidate();
+                    LogGameState("players_configured");
                 }
             }
         }
@@ -1050,9 +1145,14 @@ namespace Indigo
             label2.Visible = !debugMode;
             player0.Visible = !debugMode;
             player1.Visible = !debugMode;
+            player2.Visible = !debugMode && numOfPlayers >= 3;
+            player3.Visible = !debugMode && numOfPlayers >= 4;
             playerScore0.Visible = !debugMode;
             playerScore1.Visible = !debugMode;
+            playerScore2.Visible = !debugMode && numOfPlayers >= 3;
+            playerScore3.Visible = !debugMode && numOfPlayers >= 4;
             controlsLabel.Visible = !debugMode;
+            turnBanner.Visible = !debugMode && turnBanner.Visible;
 
             BuildStaticLayer();
             Board.Invalidate();
@@ -1072,6 +1172,97 @@ namespace Indigo
         private void BackButton_Click(object sender, EventArgs e)
         {
             Close();
+        }
+        private void TurnBannerTimer_Tick(object sender, EventArgs e)
+        {
+            TurnBannerTimer.Stop();
+            turnBanner.Visible = false;
+        }
+        private GameStateSnapshot BuildGameStateSnapshot()
+        {
+            List<PlayerStateSnapshot> players = new List<PlayerStateSnapshot>();
+            for (int i = 0; i < playerColors.Count; i++)
+            {
+                float score = i < playersPoints.Count ? playersPoints[i] : 0;
+                players.Add(new PlayerStateSnapshot
+                {
+                    Id = i,
+                    Name = $"Player {i + 1}",
+                    Color = playerColors[i],
+                    Score = score
+                });
+            }
+
+            List<GatewayStateSnapshot> gateways = new List<GatewayStateSnapshot>();
+            for (int i = 0; i < gatewayOwners.Count; i++)
+            {
+                gateways.Add(new GatewayStateSnapshot
+                {
+                    GatewayIndex = i,
+                    Owners = gatewayOwners[i].ToArray()
+                });
+            }
+
+            List<TileStateSnapshot> placedTileStates = tiles
+                .Where(t => t.index >= 0)
+                .Select(t => new TileStateSnapshot
+                {
+                    Name = t.name,
+                    BoardIndex = t.index,
+                    Rotation = t.numOfRotation,
+                    Paths = t.paths.ToArray(),
+                    Neighbors = t.neighbors.ToArray(),
+                    PositionX = t.position.X,
+                    PositionY = t.position.Y
+                })
+                .OrderBy(t => t.BoardIndex)
+                .ToList();
+
+            List<GemStateSnapshot> gemStates = gems
+                .Select(g => new GemStateSnapshot
+                {
+                    Name = g.name,
+                    OnTile = g.onTile,
+                    OnPath = g.onPath,
+                    IsActive = g.active,
+                    PositionX = g.position.X,
+                    PositionY = g.position.Y
+                })
+                .ToList();
+
+            return new GameStateSnapshot
+            {
+                TimestampUtc = DateTime.UtcNow,
+                PlayerCount = numOfPlayers,
+                CurrentPlayerIndex = currentPlayerIndex,
+                DebugMode = debugMode,
+                HideMode = hideMode,
+                RemainingDrawTiles = tiles.Count(t => t.index < 0),
+                MovingGemCount = movingGems.Count,
+                Players = players,
+                Gateways = gateways,
+                PlacedTiles = placedTileStates,
+                Gems = gemStates
+            };
+        }
+        private void LogGameState(string reason)
+        {
+            try
+            {
+                GameStateLogEntry entry = new GameStateLogEntry
+                {
+                    Reason = reason,
+                    State = BuildGameStateSnapshot()
+                };
+
+                string json = JsonSerializer.Serialize(entry);
+                File.AppendAllText(gameStateLogPath, json + Environment.NewLine);
+                Debug.WriteLine(json);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to log game state: {ex.Message}");
+            }
         }
     }
 }

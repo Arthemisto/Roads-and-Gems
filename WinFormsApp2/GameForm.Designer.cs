@@ -54,6 +54,8 @@
             player3 = new PictureBox();
             player2 = new PictureBox();
             controlsLabel = new Label();
+            turnBanner = new Label();
+            TurnBannerTimer = new System.Windows.Forms.Timer(components);
             Board.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)controlsPicture).BeginInit();
             ((System.ComponentModel.ISupportInitialize)shortRules).BeginInit();
@@ -334,6 +336,24 @@
             controlsLabel.TabIndex = 19;
             controlsLabel.Text = resources.GetString("controlsLabel.Text");
             // 
+            // turnBanner
+            // 
+            turnBanner.BackColor = Color.FromArgb(220, 32, 32, 32);
+            turnBanner.Font = new Font("Segoe UI", 24F, FontStyle.Bold);
+            turnBanner.ForeColor = Color.White;
+            turnBanner.Location = new Point(654, 30);
+            turnBanner.Name = "turnBanner";
+            turnBanner.Size = new Size(480, 64);
+            turnBanner.TabIndex = 20;
+            turnBanner.Text = "Player 1 turn";
+            turnBanner.TextAlign = ContentAlignment.MiddleCenter;
+            turnBanner.Visible = false;
+            // 
+            // TurnBannerTimer
+            // 
+            TurnBannerTimer.Interval = 2000;
+            TurnBannerTimer.Tick += TurnBannerTimer_Tick;
+            // 
             // GameForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -361,6 +381,7 @@
             Controls.Add(debugLabel2);
             Controls.Add(Board);
             Controls.Add(debugLabel1);
+            Controls.Add(turnBanner);
             DoubleBuffered = true;
             KeyPreview = true;
             Margin = new Padding(3, 2, 3, 2);
@@ -407,5 +428,7 @@
         private Panel panel1;
         private PictureBox shortRules;
         private PictureBox controlsPicture;
+        private Label turnBanner;
+        private System.Windows.Forms.Timer TurnBannerTimer;
     }
 }

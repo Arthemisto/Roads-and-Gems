@@ -5,7 +5,7 @@ namespace Indigo
     internal class Object
     {
         public string name = "Null";
-        public Image picture;
+        public Image picture = null!;
         public Point position = new Point();
     }
     internal class BoardImage : Object
@@ -170,7 +170,7 @@ namespace Indigo
             speed = 1f;
         }
         
-        public Tile nextTile;
+        public Tile? nextTile;
         public Vector2 startPoint;
         public Vector2 middlePoint;
         public Vector2 endPoint;

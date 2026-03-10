@@ -41,6 +41,7 @@
             video2Button = new Button();
             rules1Button = new Button();
             rules2Button = new Button();
+            onlineButton = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)stScale).BeginInit();
             SuspendLayout();
@@ -193,6 +194,17 @@
             rules2Button.UseVisualStyleBackColor = true;
             rules2Button.Click += rules2Button_Click;
             // 
+            // onlineButton
+            // 
+            onlineButton.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            onlineButton.Location = new Point(927, 686);
+            onlineButton.Name = "onlineButton";
+            onlineButton.Size = new Size(175, 49);
+            onlineButton.TabIndex = 20;
+            onlineButton.Text = "Online Multiplayer";
+            onlineButton.UseVisualStyleBackColor = true;
+            onlineButton.Click += onlineButton_Click;
+            // 
             // TitleScreenForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -203,6 +215,7 @@
             Controls.Add(rules1Button);
             Controls.Add(video2Button);
             Controls.Add(video1Button);
+            Controls.Add(onlineButton);
             Controls.Add(label1);
             Controls.Add(stScale);
             Controls.Add(scaleLabel);
@@ -236,5 +249,6 @@
         private Button video2Button;
         private Button rules1Button;
         private Button rules2Button;
+        private Button onlineButton;
     }
 }

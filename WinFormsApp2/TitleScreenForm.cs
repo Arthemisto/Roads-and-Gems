@@ -21,14 +21,10 @@ namespace Indigo
         public TitleScreenForm()
         {
             InitializeComponent();
+            UpdatePlayerButtons();
         }
         private void startButton_Click(object sender, EventArgs e)
         {
-            if (playerCount != 2)       //ToDo
-            {
-                return;
-            }
-
             var gameForm = new GameForm(sizesOfObjects, percent - 0.1f, playerCount);
 
             gameForm.FormClosed += (s, args) => this.Show();
@@ -79,21 +75,29 @@ namespace Indigo
         private void st2Players_Click(object sender, EventArgs e)
         {
             playerCount = 2;
-
-            startButton.BackColor = Color.White;
+            UpdatePlayerButtons();
         }
         private void st3Players_Click(object sender, EventArgs e)
         {
             playerCount = 3;
-
-            startButton.BackColor = Color.Gray;
+            UpdatePlayerButtons();
         }
         private void st4Players_Click(object sender, EventArgs e)
         {
             playerCount = 4;
-
-            startButton.BackColor = Color.Gray;
+            UpdatePlayerButtons();
         }
-        
+        private void UpdatePlayerButtons()
+        {
+            st2Players.BackColor = playerCount == 2 ? Color.FromArgb(192, 255, 192) : Color.FromArgb(255, 192, 192);
+            st3Players.BackColor = playerCount == 3 ? Color.FromArgb(192, 255, 192) : Color.FromArgb(255, 192, 192);
+            st4Players.BackColor = playerCount == 4 ? Color.FromArgb(192, 255, 192) : Color.FromArgb(255, 192, 192);
+            startButton.BackColor = Color.White;
+        }
+        private void onlineButton_Click(object sender, EventArgs e)
+        {
+            using OnlineMultiplayerForm form = new OnlineMultiplayerForm();
+            form.ShowDialog(this);
+        }
     }
 }
