@@ -12,6 +12,7 @@ Windows Forms implementation of the board game Indigo, built with .NET 8.
 - Online multiplayer lobby screen with host mode and join-by-IP mode
 - Host-side player limit enforcement up to 4 players
 - Connected player list and session log
+- Host-controlled online match start that opens the game for all connected players
 
 ## Tech Stack
 
@@ -53,13 +54,13 @@ dotnet build Indigo1_Sol.sln -p:UseAppHost=false
 Standard run:
 
 ```powershell
-dotnet run --project WinFormsApp2\Indigo.csproj
+dotnet run --project WinFormsApp2/Indigo.csproj
 ```
 
 If you built with `UseAppHost=false`, you can also run:
 
 ```powershell
-dotnet WinFormsApp2\bin\Debug\net8.0-windows\Indigo.dll
+dotnet WinFormsApp2/bin/Debug/net8.0-windows/Indigo.dll
 ```
 
 ## Local Multiplayer
@@ -71,7 +72,7 @@ dotnet WinFormsApp2\bin\Debug\net8.0-windows\Indigo.dll
 
 ## Online Multiplayer Lobby
 
-The project currently includes a network lobby, not full network-synced gameplay.
+The project includes a network lobby and synchronized match launch, but not full network-synced gameplay yet.
 
 ### Host
 
@@ -81,6 +82,7 @@ The project currently includes a network lobby, not full network-synced gameplay
 4. Choose a port.
 5. Click `Start Hosting`.
 6. Share your IP and port with the other players.
+7. When enough players have joined, click `Start Online Game` to launch the match for everyone in the lobby.
 
 ### Join
 
@@ -94,6 +96,7 @@ The project currently includes a network lobby, not full network-synced gameplay
 - Works as a lobby and session layer
 - Host acts as the server
 - Enforces max 4 players on the host side
+- Lets the host launch a match for all connected players at the same time
 - Does not yet synchronize live gameplay between machines
 
 ## Game State Logging
@@ -127,4 +130,3 @@ This exists to support future save/load, replay, and multiplayer synchronization
 - Host-authoritative multiplayer gameplay
 - Sending moves and commands over the network
 - Restoring game state from snapshots
-- Better session start flow from the online lobby into the actual match
