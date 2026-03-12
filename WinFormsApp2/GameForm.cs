@@ -39,9 +39,11 @@ namespace Indigo
         int lineAnimation = 0;
         int currentPlayerIndex = 0;
         int gemsLeft = 0;
-        readonly int localPlayerId;
+
+        readonly int localPlayerId; //for multiplayer
         readonly bool isOnlineGame;
-        readonly Func<GameStateSnapshot, Task>? sendGameStateAsync;
+        readonly Func<TurnMessage, Task>? sendTurnAsync;
+        bool yourTurn = false;
 
         static int widthOffset = 20;
         static int heightOffset = 5;                                // persition by eye
@@ -51,20 +53,27 @@ namespace Indigo
 
         bool leftDown = false;
         bool rightDown = false;                                     // mouse buttons
-        bool applyingRemoteState = false;
-        bool pendingStateBroadcast = false;
         readonly string gameStateLogPath = Path.Combine(AppContext.BaseDirectory, "game_state_log.jsonl");
 
-        internal GameForm(int[] sizesOfObjects, float percent, int playerCount, int localPlayerId = 0, Func<GameStateSnapshot, Task>? sendGameStateAsync = null)
+        internal GameForm(
+            int[] sizesOfObjects,
+            float percent,
+            int playerCount,
+            int localPlayerId = 0,
+            Func<TurnMessage, Task>? sendTurnAsync = null)
         {
             InitializeComponent();
 
             placedTiles = new Tile[3 * rings * rings - 3 * rings + 1];
             numOfPlayers = playerCount;
             scale = percent;
+
             this.localPlayerId = localPlayerId;
-            this.sendGameStateAsync = sendGameStateAsync;
-            isOnlineGame = sendGameStateAsync != null;
+            yourTurn = localPlayerId == 0;
+            this.sendTurnAsync = sendTurnAsync;
+            isOnlineGame = sendTurnAsync != null;
+            yourTurn = localPlayerId == 0;
+
             SizeAdjustments(sizesOfObjects, percent);
 
             boardImage = new BoardImage();
@@ -83,170 +92,45 @@ namespace Indigo
             SetUpPlayerUi();
 
             BuildStaticLayer();
-            LogGameState("game_form_initialized");
         }
         private bool IsLocalPlayersTurn()
         {
-            return !isOnlineGame || currentPlayerIndex == localPlayerId;
+            return !isOnlineGame || yourTurn;
+        }
+        public void ApplyRemoteTurn(TurnMessage turn)
+        {
+            if (turn.TileIndex < 0 || turn.TileIndex >= tiles.Count)
+                return;
+
+            Tile tile = tiles[turn.TileIndex];
+
+            for (int i = 0; i < turn.Rotation; i++)
+                RotateTile(tile, true);
+
+            if (turn.BoardIndex >= 0 && turn.BoardIndex < points.Length)
+            {
+                Vector2 pos = points[turn.BoardIndex];
+
+                tile.position = new Point(
+                    (int)(pos.X - Tile.width / 2f),
+                    (int)(pos.Y - Tile.height / 2f)
+                );
+            }
+
+            Snap(tile);
+
+            currentPlayerIndex = (turn.PlayerIndex + 1) % numOfPlayers;
+
+            yourTurn = currentPlayerIndex == localPlayerId;
+
+            BuildStaticLayer();
+            Board.Invalidate();
         }
         private bool CanConfigureOnlinePlayers()
         {
             return !isOnlineGame || localPlayerId == 0;
         }
-        private void NotifyStateChanged(string reason)
-        {
-            LogGameState(reason);
 
-            if (!isOnlineGame || applyingRemoteState)
-                return;
-
-            if (movingGems.Any())
-            {
-                pendingStateBroadcast = true;
-                return;
-            }
-
-            _ = BroadcastCurrentStateAsync();
-        }
-        private async Task BroadcastCurrentStateAsync()
-        {
-            if (sendGameStateAsync == null || applyingRemoteState)
-                return;
-
-            try
-            {
-                await sendGameStateAsync(BuildGameStateSnapshot());
-                pendingStateBroadcast = false;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Failed to broadcast game state: {ex.Message}");
-            }
-        }
-        private void RefreshPlacedTilesFromBoard()
-        {
-            placedTiles = new Tile[3 * rings * rings - 3 * rings + 1];
-            foreach (Tile tile in tiles)
-            {
-                if (tile.index >= 0 && tile.index < placedTiles.Length)
-                    placedTiles[tile.index] = tile;
-            }
-        }
-        private void ApplyTileRotationVisual(Tile tile, int rotation)
-        {
-            tile.numOfRotation = ((rotation % 6) + 6) % 6;
-            tile.picture = new Bitmap(tile.originalPic);
-
-            if (tile.numOfRotation == 0)
-                return;
-
-            if (tile.numOfRotation == 3)
-            {
-                tile.picture.RotateFlip(RotateFlipType.Rotate180FlipNone);
-                return;
-            }
-
-            tile.picture = ImageUtils.RotateHex(tile.picture, tile.numOfRotation * 60f, Tile.width, Tile.height);
-        }
-        internal void ApplyRemoteSnapshot(GameStateSnapshot snapshot)
-        {
-            if (IsDisposed)
-                return;
-
-            if (InvokeRequired)
-            {
-                BeginInvoke(() => ApplyRemoteSnapshot(snapshot));
-                return;
-            }
-
-            applyingRemoteState = true;
-
-            try
-            {
-                numOfPlayers = snapshot.PlayerCount;
-                currentPlayerIndex = snapshot.PlayerCount <= 0 ? 0 : Math.Clamp(snapshot.CurrentPlayerIndex, 0, snapshot.PlayerCount - 1);
-
-                playerColors = snapshot.Players
-                    .OrderBy(p => p.Id)
-                    .Select(p => p.Color)
-                    .ToList();
-
-                playersPoints = snapshot.Players
-                    .OrderBy(p => p.Id)
-                    .Select(p => p.Score)
-                    .ToList();
-
-                gatewayOwners = snapshot.Gateways
-                    .OrderBy(g => g.GatewayIndex)
-                    .Select(g => g.Owners.ToArray())
-                    .ToList();
-
-                if (playerColors.Any())
-                {
-                    if (!gatewayOwners.Any())
-                        gatewayOwners = CreateGatewayOwners(playerColors.Count);
-
-                    MakeTokens(playerColors);
-                    UpdatePlayerSidebar();
-                    UpdateScoreLabels();
-                    playersButton.BackColor = Color.DarkGray;
-                }
-
-                foreach (Tile tile in tiles)
-                {
-                    tile.index = -1;
-                    tile.active = false;
-                    tile.neighbors = [-1, -1, -1, -1, -1, -1];
-                    tile.gemsInside.Clear();
-                    ApplyTileRotationVisual(tile, 0);
-                }
-
-                foreach (TileStateSnapshot tileState in snapshot.PlacedTiles.OrderBy(t => t.TileId))
-                {
-                    if (tileState.TileId < 0 || tileState.TileId >= tiles.Count)
-                        continue;
-
-                    Tile tile = tiles[tileState.TileId];
-                    tile.index = tileState.BoardIndex;
-                    tile.position = new Point(tileState.PositionX, tileState.PositionY);
-                    tile.rect.X = tile.position.X;
-                    tile.rect.Y = tile.position.Y + Tile.height / 8;
-                    tile.paths = tileState.Paths.ToArray();
-                    tile.neighbors = tileState.Neighbors.ToArray();
-                    tile.active = tileState.IsActive;
-                    ApplyTileRotationVisual(tile, tileState.Rotation);
-                }
-
-                selectedTile = tiles.FirstOrDefault(t => t.active);
-                RefreshPlacedTilesFromBoard();
-
-                foreach (Gem gem in gems)
-                    gem.active = false;
-
-                foreach (GemStateSnapshot gemState in snapshot.Gems.OrderBy(g => g.GemId))
-                {
-                    if (gemState.GemId < 0 || gemState.GemId >= gems.Count)
-                        continue;
-
-                    Gem gem = gems[gemState.GemId];
-                    gem.onTile = gemState.OnTile;
-                    gem.onPath = gemState.OnPath;
-                    gem.active = gemState.IsActive;
-                    gem.position = new Point(gemState.PositionX, gemState.PositionY);
-
-                    if (gem.onTile >= 0 && gem.onTile < placedTiles.Length && placedTiles[gem.onTile] != null)
-                        placedTiles[gem.onTile].gemsInside.Add(gem);
-                }
-
-                movingGems.Clear();
-                BuildStaticLayer();
-                Board.Invalidate();
-            }
-            finally
-            {
-                applyingRemoteState = false;
-            }
-        }
         private void SetUpPlayerUi()
         {
             playerIcons = [player0, player1, player2, player3];
@@ -611,6 +495,23 @@ namespace Indigo
             tile.position = new Point(newX, newY);
             placedTiles[index] = tile;
 
+            if (isOnlineGame && sendTurnAsync != null)
+            {
+                int tileIndex = tiles.IndexOf(tile);
+
+                TurnMessage turn = new TurnMessage
+                {
+                    PlayerIndex = currentPlayerIndex,
+                    TileIndex = tileIndex,
+                    Rotation = tile.numOfRotation,              //TODO: change tile.index to the tile.placement or smt
+                    BoardIndex = tile.index
+                };
+
+                _ = sendTurnAsync(turn);
+
+                yourTurn = false;
+            }
+
             List<int> neighborIndexies = FindNeighbors(new_pos);
             if (!neighborIndexies.Any())
                 return true;
@@ -628,7 +529,6 @@ namespace Indigo
             turnBanner.BringToFront();
             TurnBannerTimer.Stop();
             TurnBannerTimer.Start();
-            LogGameState("turn_banner_shown");
         }
         private void AdvanceTurn()
         {
@@ -818,7 +718,6 @@ namespace Indigo
                 playersPoints[owner] += score;
 
             UpdateScoreLabels();
-            NotifyStateChanged("score_updated");
 
             gemsLeft--;
             if (gemsLeft == 0)
@@ -878,7 +777,6 @@ namespace Indigo
             }
 
             Board.Invalidate();
-            NotifyStateChanged("tile_rotated");
         }
         private void BoardMouseDown(object sender, MouseEventArgs e)
         {
@@ -897,7 +795,6 @@ namespace Indigo
             {
                 RotateTile(selectedTile, true);
                 Board.Invalidate();
-                NotifyStateChanged("tile_rotated");
             }
 
             if (leftDown)
@@ -955,8 +852,6 @@ namespace Indigo
 
                 if (placedSuccessfully && playerTokens.Any())
                     AdvanceTurn();
-
-                NotifyStateChanged(placedSuccessfully ? "tile_placed" : "tile_released");
             }
 
             BuildStaticLayer();
@@ -1004,8 +899,6 @@ namespace Indigo
             if (!movingGems.Any())
             {
                 GemTimer.Stop();
-                if (pendingStateBroadcast)
-                    _ = BroadcastCurrentStateAsync();
                 return;
             }
             Gem gem = movingGems[0];
@@ -1051,17 +944,6 @@ namespace Indigo
 
             if (m1.t > 1f)                          // if reached the end of road
             {
-                if (m1.nextTile == null)
-                {
-                    movingGems.Remove(gem);
-                    m1.t = 0f;
-                    m1.speed = 1f;
-                    NotifyStateChanged("gem_movement_aborted_missing_next_tile");
-                    if (!movingGems.Any() && pendingStateBroadcast)
-                        _ = BroadcastCurrentStateAsync();
-                    return;
-                }
-
                 gem.onPath = m1.willExitBy;
                 gem.onTile = m1.nextTile.index;
 
@@ -1098,20 +980,10 @@ namespace Indigo
                             gems.Remove(gem);
                             movingGems.Remove(anotherGem);
                             movingGems.Remove(gem);
-
-                            NotifyStateChanged("gem_collision");
-                            if (!movingGems.Any() && pendingStateBroadcast)
-                                _ = BroadcastCurrentStateAsync();
-
-                            gemsLeft -= 2;
-                            if (gemsLeft == 0)
-                                GameEnd();
-
                             return;
                         }
 
                 BuildStaticLayer();
-                NotifyStateChanged("gem_movement_resolved");
                 return;
             }
 
@@ -1343,7 +1215,6 @@ namespace Indigo
 
                     BuildStaticLayer();
                     Board.Invalidate();
-                    NotifyStateChanged("players_configured");
                 }
             }
         }
@@ -1405,94 +1276,6 @@ namespace Indigo
         {
             TurnBannerTimer.Stop();
             turnBanner.Visible = false;
-        }
-        private GameStateSnapshot BuildGameStateSnapshot()
-        {
-            List<PlayerStateSnapshot> players = new List<PlayerStateSnapshot>();
-            for (int i = 0; i < playerColors.Count; i++)
-            {
-                float score = i < playersPoints.Count ? playersPoints[i] : 0;
-                players.Add(new PlayerStateSnapshot
-                {
-                    Id = i,
-                    Name = $"Player {i + 1}",
-                    Color = playerColors[i],
-                    Score = score
-                });
-            }
-
-            List<GatewayStateSnapshot> gateways = new List<GatewayStateSnapshot>();
-            for (int i = 0; i < gatewayOwners.Count; i++)
-            {
-                gateways.Add(new GatewayStateSnapshot
-                {
-                    GatewayIndex = i,
-                    Owners = gatewayOwners[i].ToArray()
-                });
-            }
-
-            List<TileStateSnapshot> placedTileStates = tiles
-                .Select((t, index) => new TileStateSnapshot
-                {
-                    TileId = index,
-                    Name = t.name,
-                    BoardIndex = t.index,
-                    Rotation = t.numOfRotation,
-                    Paths = t.paths.ToArray(),
-                    Neighbors = t.neighbors.ToArray(),
-                    PositionX = t.position.X,
-                    PositionY = t.position.Y,
-                    IsActive = t.active
-                })
-                .OrderBy(t => t.TileId)
-                .ToList();
-
-            List<GemStateSnapshot> gemStates = gems
-                .Select((g, index) => new GemStateSnapshot
-                {
-                    GemId = index,
-                    Name = g.name,
-                    OnTile = g.onTile,
-                    OnPath = g.onPath,
-                    IsActive = g.active,
-                    PositionX = g.position.X,
-                    PositionY = g.position.Y
-                })
-                .ToList();
-
-            return new GameStateSnapshot
-            {
-                TimestampUtc = DateTime.UtcNow,
-                PlayerCount = numOfPlayers,
-                CurrentPlayerIndex = currentPlayerIndex,
-                DebugMode = debugMode,
-                HideMode = hideMode,
-                RemainingDrawTiles = tiles.Count(t => t.index < 0),
-                MovingGemCount = movingGems.Count,
-                Players = players,
-                Gateways = gateways,
-                PlacedTiles = placedTileStates,
-                Gems = gemStates
-            };
-        }
-        private void LogGameState(string reason)
-        {
-            try
-            {
-                GameStateLogEntry entry = new GameStateLogEntry
-                {
-                    Reason = reason,
-                    State = BuildGameStateSnapshot()
-                };
-
-                string json = JsonSerializer.Serialize(entry);
-                File.AppendAllText(gameStateLogPath, json + Environment.NewLine);
-                Debug.WriteLine(json);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Failed to log game state: {ex.Message}");
-            }
         }
     }
 }

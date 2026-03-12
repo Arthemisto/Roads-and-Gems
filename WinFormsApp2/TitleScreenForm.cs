@@ -96,7 +96,7 @@ namespace Indigo
         }
         private void onlineButton_Click(object sender, EventArgs e)
         {
-            using OnlineMultiplayerForm form = new OnlineMultiplayerForm();
+            using OnlineMultiplayerForm form = new OnlineMultiplayerForm(sizesOfObjects, percent);
             form.ShowDialog(this);
         }
     }

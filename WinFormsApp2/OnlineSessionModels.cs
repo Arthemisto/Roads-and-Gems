@@ -7,16 +7,28 @@ namespace Indigo
         public bool IsHost { get; set; }
     }
 
+    public sealed class TurnMessage
+    {
+        public int PlayerIndex { get; set; }
+        public int TileIndex { get; set; }
+        public int Rotation { get; set; }
+        public int BoardIndex { get; set; }
+    }
+
     internal sealed class OnlineSessionEnvelope
     {
         public string Type { get; set; } = string.Empty;
+
         public string? Message { get; set; }
         public int? PlayerId { get; set; }
         public int? PlayerCount { get; set; }
         public int? MaxPlayers { get; set; }
+
         public string? SessionName { get; set; }
         public string? PlayerName { get; set; }
+
         public List<OnlinePlayerInfo> Players { get; set; } = new List<OnlinePlayerInfo>();
-        public GameStateSnapshot? State { get; set; }
+
+        public TurnMessage? Turn { get; set; }
     }
 }

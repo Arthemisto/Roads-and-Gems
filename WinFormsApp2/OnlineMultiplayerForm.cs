@@ -24,22 +24,16 @@ namespace Indigo
         private bool isLaunchingGame;
         private int localPlayerId;
         private int maxPlayers = 4;
-        private readonly int[] sizesOfObjects =
-        [
-            BoardImage.width,
-            BoardImage.height,
-            Tile.width,
-            Tile.height,
-            Gem.width,
-            Gem.height,
-            PlayerToken.width,
-            PlayerToken.height
-        ];
-        private const float GameScale = 0.9f;
+        private int[] sizesOfObjects;
+        private float percent;
 
-        public OnlineMultiplayerForm()
+        public OnlineMultiplayerForm(int[] sizesOfObjects, float percent)
         {
             InitializeComponent();
+
+            this.sizesOfObjects = sizesOfObjects;
+            this.percent = percent;
+
             playerNameTextBox.Text = $"{Environment.UserName}";
             RefreshPlayerList();
             UpdateHostShareTargets();
@@ -206,8 +200,8 @@ namespace Indigo
                     OnlineSessionEnvelope? message = DeserializeEnvelope(clientLine);
                     if (message?.Type == "leave")
                         break;
-                    if (message?.Type == "game_state" && message.State != null)
-                        await HandleClientGameStateAsync(connection.Player.PlayerId, message.State);
+                    if (message?.Type == "turn" && message.Turn != null)
+                        await HandleClientTurnAsync(connection.Player.PlayerId, message.Turn);
                 }
             }
             catch (OperationCanceledException)
@@ -427,9 +421,9 @@ namespace Indigo
                         joinStatusLabel.Text = $"Starting game for {playerCount} players...";
                         BeginInvoke(() => LaunchOnlineGame(playerCount));
                     }
-                    else if (envelope.Type == "game_state" && envelope.State != null)
+                    else if (envelope.Type == "turn" && envelope.Turn != null)
                     {
-                        activeGameForm?.ApplyRemoteSnapshot(envelope.State);
+                        activeGameForm?.ApplyRemoteTurn(envelope.Turn);
                     }
                     else if (envelope.Type == "session_closed")
                     {
@@ -668,26 +662,26 @@ namespace Indigo
             }
         }
 
-        private async Task HandleClientGameStateAsync(int playerId, GameStateSnapshot snapshot)
+        private async Task HandleClientTurnAsync(int playerId, TurnMessage turn)
         {
             if (activeGameForm != null && !activeGameForm.IsDisposed)
-                activeGameForm.ApplyRemoteSnapshot(snapshot);
+                activeGameForm.ApplyRemoteTurn(turn);
 
             await BroadcastEnvelopeToClientsAsync(new OnlineSessionEnvelope
             {
-                Type = "game_state",
+                Type = "turn",
                 PlayerId = playerId,
-                State = snapshot
+                Turn = turn
             });
         }
 
-        private Task SendGameStateAsync(GameStateSnapshot snapshot)
+        private Task SendTurnAsync(TurnMessage turn)
         {
             OnlineSessionEnvelope envelope = new OnlineSessionEnvelope
             {
-                Type = "game_state",
+                Type = "turn",
                 PlayerId = localPlayerId,
-                State = snapshot
+                Turn = turn
             };
 
             if (isHosting)
@@ -708,7 +702,7 @@ namespace Indigo
             formRefreshTimer.Stop();
             ToggleLobbyControls(false);
 
-            using GameForm gameForm = new GameForm(sizesOfObjects, GameScale, playerCount, localPlayerId, SendGameStateAsync);
+            using GameForm gameForm = new GameForm(sizesOfObjects, percent, playerCount, localPlayerId, SendTurnAsync);
             activeGameForm = gameForm;
             Hide();
             try
