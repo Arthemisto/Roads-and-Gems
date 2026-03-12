@@ -60,7 +60,8 @@ namespace Indigo
             float percent,
             int playerCount,
             int localPlayerId = 0,
-            Func<TurnMessage, Task>? sendTurnAsync = null)
+            Func<TurnMessage, Task>? sendTurnAsync = null,
+            List<string>? onlineColors = null)
         {
             InitializeComponent();
 
@@ -92,6 +93,12 @@ namespace Indigo
             SetUpPlayerUi();
 
             BuildStaticLayer();
+
+            if (isOnlineGame && onlineColors.Any())
+            {
+                playersButton.Visible = false;
+                MakeTokens(onlineColors);
+            }
         }
         private bool IsLocalPlayersTurn()
         {
@@ -355,6 +362,22 @@ namespace Indigo
                 numOfRotations--;
                 i++;
             }
+
+            playersPoints.Clear();
+            for (int i = 0; i < numOfPlayers; i++)
+                playersPoints.Add(0);
+            UpdatePlayerSidebar();
+            UpdateScoreLabels();
+            currentPlayerIndex = 0;
+            ShowCurrentTurnBanner();
+
+            foreach (var gem in gems.Where(g => g.onTile >= 43))
+                ScoreUpdate(gem);
+
+            playersButton.BackColor = Color.DarkGray;
+
+            BuildStaticLayer();
+            Board.Invalidate();
         }
         private List<int[]> CreateGatewayOwners(int playerCount)
         {
@@ -754,7 +777,7 @@ namespace Indigo
                 debugLabel2.Text += "]";
             }
 
-            switch (e.KeyCode)          // Keys.Left and Keys.Righ not working
+            switch (e.KeyCode)                      // TODO: Keys.Left and Keys.Righ not working
             {
                 case Keys.A:
                 case Keys.Left:
@@ -1197,25 +1220,7 @@ namespace Indigo
             using (var form = new PlayerForm(numOfPlayers))
             {
                 if (form.ShowDialog() == DialogResult.OK)
-                {
                     MakeTokens(form.playerColors);
-
-                    playersPoints.Clear();
-                    for (int i = 0; i < numOfPlayers; i++)
-                        playersPoints.Add(0);
-                    UpdatePlayerSidebar();
-                    UpdateScoreLabels();
-                    currentPlayerIndex = 0;
-                    ShowCurrentTurnBanner();
-
-                    foreach (var gem in gems.Where(g => g.onTile >= 43))
-                        ScoreUpdate(gem);
-
-                    playersButton.BackColor = Color.DarkGray;
-
-                    BuildStaticLayer();
-                    Board.Invalidate();
-                }
             }
         }
         private void RulesButton_Click(object sender, EventArgs e)

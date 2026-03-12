@@ -11,6 +11,7 @@ namespace Indigo
         private readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions();
         private readonly List<OnlinePlayerInfo> connectedPlayers = new List<OnlinePlayerInfo>();
         private readonly List<HostClientConnection> hostClients = new List<HostClientConnection>();
+        private readonly List<string> onlineColors = new List<string>();
 
         private TcpListener? hostListener;
         private TcpClient? clientConnection;
@@ -37,6 +38,35 @@ namespace Indigo
             playerNameTextBox.Text = $"{Environment.UserName}";
             RefreshPlayerList();
             UpdateHostShareTargets();
+        }
+
+        private void UpdateOnlineColors()
+        {
+            onlineColors.Clear();
+
+            foreach (OnlinePlayerInfo player in connectedPlayers.OrderBy(p => p.PlayerId))
+            {
+                string name = player.Name.Trim();
+
+                if (string.IsNullOrEmpty(name))
+                {
+                    onlineColors.Add("White");
+                    continue;
+                }
+
+                char lastLetter = char.ToUpper(name[^1]);
+
+                string color = lastLetter switch
+                {
+                    'W' => "White",
+                    'R' => "Red",
+                    'C' => "Cyan",
+                    'P' => "Purple",
+                    _ => "White"
+                };
+
+                onlineColors.Add(color);
+            }
         }
 
         private async void startHostingButton_Click(object sender, EventArgs e)
@@ -583,6 +613,8 @@ namespace Indigo
                 string prefix = player.IsHost ? "[HOST]" : "[JOIN]";
                 playersListBox.Items.Add($"{prefix} P{player.PlayerId + 1}: {player.Name}");
             }
+
+            UpdateOnlineColors();
         }
 
         private void UpdateHostStatus()
@@ -702,7 +734,7 @@ namespace Indigo
             formRefreshTimer.Stop();
             ToggleLobbyControls(false);
 
-            using GameForm gameForm = new GameForm(sizesOfObjects, percent, playerCount, localPlayerId, SendTurnAsync);
+            using GameForm gameForm = new GameForm(sizesOfObjects, percent, playerCount, localPlayerId, SendTurnAsync, onlineColors);
             activeGameForm = gameForm;
             Hide();
             try

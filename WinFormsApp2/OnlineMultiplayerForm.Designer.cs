@@ -24,9 +24,9 @@ namespace Indigo
             lobbyTabs = new TabControl();
             hostPage = new TabPage();
             hostStatusLabel = new Label();
-            hostInfoLabel = new Label();
-            hostIpListBox = new ListBox();
             copyHostIpButton = new Button();
+            hostIpListBox = new ListBox();
+            hostInfoLabel = new Label();
             stopHostingButton = new Button();
             startHostingButton = new Button();
             hostPortInput = new NumericUpDown();
@@ -48,6 +48,7 @@ namespace Indigo
             startGameButton = new Button();
             closeButton = new Button();
             formRefreshTimer = new System.Windows.Forms.Timer(components);
+            labelOfReq = new Label();
             lobbyTabs.SuspendLayout();
             hostPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)hostPortInput).BeginInit();
@@ -126,25 +127,6 @@ namespace Indigo
             hostStatusLabel.TabIndex = 7;
             hostStatusLabel.Text = "Host idle";
             // 
-            // hostInfoLabel
-            // 
-            hostInfoLabel.BackColor = Color.Gray;
-            hostInfoLabel.Location = new Point(16, 102);
-            hostInfoLabel.Name = "hostInfoLabel";
-            hostInfoLabel.Size = new Size(377, 27);
-            hostInfoLabel.TabIndex = 6;
-            hostInfoLabel.Text = "Start hosting to see available IP addresses";
-            hostInfoLabel.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // hostIpListBox
-            // 
-            hostIpListBox.FormattingEnabled = true;
-            hostIpListBox.Location = new Point(16, 139);
-            hostIpListBox.Name = "hostIpListBox";
-            hostIpListBox.Size = new Size(377, 64);
-            hostIpListBox.TabIndex = 8;
-            hostIpListBox.DoubleClick += copyHostIpButton_Click;
-            // 
             // copyHostIpButton
             // 
             copyHostIpButton.Enabled = false;
@@ -155,6 +137,25 @@ namespace Indigo
             copyHostIpButton.Text = "Copy Selected IP";
             copyHostIpButton.UseVisualStyleBackColor = true;
             copyHostIpButton.Click += copyHostIpButton_Click;
+            // 
+            // hostIpListBox
+            // 
+            hostIpListBox.FormattingEnabled = true;
+            hostIpListBox.Location = new Point(16, 139);
+            hostIpListBox.Name = "hostIpListBox";
+            hostIpListBox.Size = new Size(377, 64);
+            hostIpListBox.TabIndex = 8;
+            hostIpListBox.DoubleClick += copyHostIpButton_Click;
+            // 
+            // hostInfoLabel
+            // 
+            hostInfoLabel.BackColor = Color.Gray;
+            hostInfoLabel.Location = new Point(16, 102);
+            hostInfoLabel.Name = "hostInfoLabel";
+            hostInfoLabel.Size = new Size(377, 27);
+            hostInfoLabel.TabIndex = 6;
+            hostInfoLabel.Text = "Start hosting to see available IP addresses";
+            hostInfoLabel.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // stopHostingButton
             // 
@@ -369,12 +370,24 @@ namespace Indigo
             formRefreshTimer.Interval = 500;
             formRefreshTimer.Tick += formRefreshTimer_Tick;
             // 
+            // labelOfReq
+            // 
+            labelOfReq.AutoSize = true;
+            labelOfReq.BackColor = Color.IndianRed;
+            labelOfReq.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            labelOfReq.Location = new Point(462, 87);
+            labelOfReq.Name = "labelOfReq";
+            labelOfReq.Size = new Size(330, 28);
+            labelOfReq.TabIndex = 10;
+            labelOfReq.Text = "Add to the end W, R, C or P for color";
+            // 
             // OnlineMultiplayerForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(64, 64, 64);
             ClientSize = new Size(884, 514);
+            Controls.Add(labelOfReq);
             Controls.Add(startGameButton);
             Controls.Add(closeButton);
             Controls.Add(logTextBox);
@@ -432,5 +445,6 @@ namespace Indigo
         private Button startGameButton;
         private Button closeButton;
         private System.Windows.Forms.Timer formRefreshTimer;
+        private Label labelOfReq;
     }
 }
