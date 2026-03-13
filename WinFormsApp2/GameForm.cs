@@ -615,6 +615,7 @@ namespace Indigo
         private bool Snap(Tile tile, bool broadcastTurn = true)
         {
             string stateHashBefore = string.Empty;
+            TurnMessage? pendingTurn = null;
             if (broadcastTurn && isOnlineGame && yourTurn && sendTurnAsync != null)
                 stateHashBefore = CaptureStateHash();
 
@@ -641,7 +642,7 @@ namespace Indigo
             {
                 int tileIndex = tiles.IndexOf(tile);
 
-                TurnMessage turn = new TurnMessage
+                pendingTurn = new TurnMessage
                 {
                     PlayerIndex = currentPlayerIndex,
                     TileIndex = tileIndex,
@@ -649,17 +650,18 @@ namespace Indigo
                     BoardIndex = tile.index,
                     StateHashBefore = stateHashBefore
                 };
-
-                _ = sendTurnAsync(turn);
-
-                yourTurn = false;
             }
 
             List<int> neighborIndexies = FindNeighbors(new_pos);
-            if (!neighborIndexies.Any())
-                return true;
+            if (neighborIndexies.Any())
+                EventsAfterPlacement(tile, neighborIndexies);
 
-            EventsAfterPlacement(tile, neighborIndexies);
+            if (pendingTurn != null)
+            {
+                _ = sendTurnAsync!(pendingTurn);
+                yourTurn = false;
+            }
+
             return true;
         }
         private void ShowCurrentTurnBanner()
