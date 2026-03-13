@@ -1156,6 +1156,11 @@ namespace Indigo
                             gems.Remove(gem);
                             movingGems.Remove(anotherGem);
                             movingGems.Remove(gem);
+
+                            gemsLeft -= 2;
+                            if (gemsLeft == 0)
+                                GameEnd();
+
                             return;
                         }
 
