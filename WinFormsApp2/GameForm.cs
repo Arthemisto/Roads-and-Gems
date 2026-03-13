@@ -73,7 +73,7 @@ namespace Indigo
             yourTurn = localPlayerId == 0;
             this.sendTurnAsync = sendTurnAsync;
             isOnlineGame = sendTurnAsync != null;
-            yourTurn = localPlayerId == 0;
+            yourTurn = localPlayerId == 0;          //Maybe unnecesarry
 
             SizeAdjustments(sizesOfObjects, percent);
 
@@ -518,7 +518,7 @@ namespace Indigo
             tile.position = new Point(newX, newY);
             placedTiles[index] = tile;
 
-            if (isOnlineGame && sendTurnAsync != null)
+            if (isOnlineGame && yourTurn && sendTurnAsync != null)
             {
                 int tileIndex = tiles.IndexOf(tile);
 
