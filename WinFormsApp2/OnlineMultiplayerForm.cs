@@ -25,6 +25,7 @@ namespace Indigo
         private bool isLaunchingGame;
         private int localPlayerId;
         private int maxPlayers = 4;
+        private int nextTurnNumber;
         private int[] sizesOfObjects;
         private float percent;
 
@@ -453,7 +454,12 @@ namespace Indigo
                     }
                     else if (envelope.Type == "turn" && envelope.Turn != null)
                     {
-                        activeGameForm?.ApplyRemoteTurn(envelope.Turn);
+                        HandleAuthoritativeTurn(envelope);
+                    }
+                    else if (envelope.Type == "state_sync" && envelope.Snapshot != null)
+                    {
+                        activeGameForm?.ApplySnapshot(envelope.Snapshot);
+                        AppendLog(envelope.Message ?? "State synchronized from host.");
                     }
                     else if (envelope.Type == "session_closed")
                     {
@@ -663,6 +669,7 @@ namespace Indigo
                 return;
 
             int playerCount = connectedPlayers.Count;
+            nextTurnNumber = 0;
             AppendLog($"Starting online match with {playerCount} players.");
 
             await BroadcastEnvelopeToClientsAsync(new OnlineSessionEnvelope
@@ -696,33 +703,126 @@ namespace Indigo
 
         private async Task HandleClientTurnAsync(int playerId, TurnMessage turn)
         {
-            if (activeGameForm != null && !activeGameForm.IsDisposed)
-                activeGameForm.ApplyRemoteTurn(turn);
+            if (activeGameForm == null || activeGameForm.IsDisposed)
+                return;
+
+            string hostStateHashBefore = activeGameForm.CaptureStateHash();
+            if (!string.Equals(turn.StateHashBefore, hostStateHashBefore, StringComparison.Ordinal))
+                AppendLog($"Desync warning before turn P{playerId + 1}: client={turn.StateHashBefore}, host={hostStateHashBefore}");
+
+            turn.PlayerIndex = playerId;
+
+            if (!activeGameForm.ApplyAuthoritativeTurn(turn))
+            {
+                AppendLog($"Rejected turn from P{playerId + 1}. Sending host snapshot.");
+                await SendStateSyncToClientAsync(playerId, "Turn rejected. Host state restored.");
+                return;
+            }
+
+            turn.TurnNumber = ++nextTurnNumber;
+            turn.StateHashAfter = activeGameForm.CaptureStateHash();
 
             await BroadcastEnvelopeToClientsAsync(new OnlineSessionEnvelope
             {
                 Type = "turn",
                 PlayerId = playerId,
-                Turn = turn
+                Turn = turn,
+                Snapshot = activeGameForm.CaptureSnapshot()
             });
+        }
+        private void HandleAuthoritativeTurn(OnlineSessionEnvelope envelope)
+        {
+            if (activeGameForm == null || activeGameForm.IsDisposed || envelope.Turn == null)
+                return;
+
+            TurnMessage turn = envelope.Turn;
+            string localStateHash = activeGameForm.CaptureStateHash();
+
+            if (envelope.Snapshot != null)
+            {
+                bool beforeMismatch =
+                    turn.PlayerIndex != localPlayerId &&
+                    !string.IsNullOrWhiteSpace(turn.StateHashBefore) &&
+                    !string.Equals(localStateHash, turn.StateHashBefore, StringComparison.Ordinal);
+
+                bool afterMismatch =
+                    !string.IsNullOrWhiteSpace(turn.StateHashAfter) &&
+                    !string.Equals(localStateHash, turn.StateHashAfter, StringComparison.Ordinal);
+
+                if (beforeMismatch || afterMismatch)
+                    AppendLog($"Host resync for turn #{turn.TurnNumber}: local state hash differed.");
+
+                activeGameForm.ApplySnapshot(envelope.Snapshot);
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(turn.StateHashBefore) &&
+                !string.Equals(localStateHash, turn.StateHashBefore, StringComparison.Ordinal))
+            {
+                AppendLog($"Skipped turn #{turn.TurnNumber}: local state does not match host pre-state.");
+                return;
+            }
+
+            if (!activeGameForm.ApplyAuthoritativeTurn(turn))
+                AppendLog($"Failed to apply turn #{turn.TurnNumber} from host.");
+        }
+        private async Task SendStateSyncToClientAsync(int playerId, string message)
+        {
+            if (activeGameForm == null || activeGameForm.IsDisposed)
+                return;
+
+            HostClientConnection? client;
+            lock (hostClients)
+                client = hostClients.FirstOrDefault(c => c.Player.PlayerId == playerId);
+
+            if (client == null)
+                return;
+
+            try
+            {
+                await SendEnvelopeAsync(client.Writer, new OnlineSessionEnvelope
+                {
+                    Type = "state_sync",
+                    Message = message,
+                    Snapshot = activeGameForm.CaptureSnapshot()
+                }, hostCts?.Token ?? CancellationToken.None);
+            }
+            catch
+            {
+                RemoveHostClient(client.Player.PlayerId, $"{client.Player.Name} dropped during resync.");
+            }
         }
 
         private Task SendTurnAsync(TurnMessage turn)
         {
-            OnlineSessionEnvelope envelope = new OnlineSessionEnvelope
-            {
-                Type = "turn",
-                PlayerId = localPlayerId,
-                Turn = turn
-            };
-
             if (isHosting)
-                return BroadcastEnvelopeToClientsAsync(envelope);
+            {
+                if (activeGameForm == null || activeGameForm.IsDisposed)
+                    return Task.CompletedTask;
+
+                turn.PlayerIndex = localPlayerId;
+                activeGameForm.FinalizeAuthoritativeTurn(turn.PlayerIndex);
+                turn.TurnNumber = ++nextTurnNumber;
+                turn.StateHashAfter = activeGameForm.CaptureStateHash();
+
+                return BroadcastEnvelopeToClientsAsync(new OnlineSessionEnvelope
+                {
+                    Type = "turn",
+                    PlayerId = localPlayerId,
+                    Turn = turn,
+                    Snapshot = activeGameForm.CaptureSnapshot()
+                });
+            }
 
             if (clientWriter == null)
                 return Task.CompletedTask;
 
-            return SendEnvelopeAsync(clientWriter, envelope, clientCts?.Token ?? CancellationToken.None);
+            return SendEnvelopeAsync(clientWriter, new OnlineSessionEnvelope
+            {
+                Type = "turn",
+                PlayerId = localPlayerId,
+                Turn = turn
+            }, clientCts?.Token ?? CancellationToken.None);
         }
 
         private void LaunchOnlineGame(int playerCount)
@@ -736,6 +836,7 @@ namespace Indigo
 
             using GameForm gameForm = new GameForm(sizesOfObjects, percent, playerCount, localPlayerId, SendTurnAsync, onlineColors);
             activeGameForm = gameForm;
+            nextTurnNumber = 0;
             Hide();
             try
             {

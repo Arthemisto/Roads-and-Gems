@@ -22,6 +22,7 @@ namespace Indigo
     }
     internal class Tile : Object
     {
+        public int templateId;
         public Image originalPic;
         public static int height = 125;
         public static int width = (int)(height * 0.866);
@@ -37,6 +38,7 @@ namespace Indigo
 
         public Tile(int tileNumber)
         {
+            templateId = tileNumber;
             rect = new Rectangle(position.X, position.Y, width, height - height / 4);
 
             switch (tileNumber)

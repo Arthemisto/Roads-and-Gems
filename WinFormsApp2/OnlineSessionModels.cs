@@ -9,10 +9,13 @@ namespace Indigo
 
     public sealed class TurnMessage
     {
+        public int TurnNumber { get; set; }
         public int PlayerIndex { get; set; }
         public int TileIndex { get; set; }
         public int Rotation { get; set; }
         public int BoardIndex { get; set; }
+        public string StateHashBefore { get; set; } = string.Empty;
+        public string StateHashAfter { get; set; } = string.Empty;
     }
 
     internal sealed class OnlineSessionEnvelope
@@ -30,5 +33,6 @@ namespace Indigo
         public List<OnlinePlayerInfo> Players { get; set; } = new List<OnlinePlayerInfo>();
 
         public TurnMessage? Turn { get; set; }
+        public GameStateSnapshot? Snapshot { get; set; }
     }
 }

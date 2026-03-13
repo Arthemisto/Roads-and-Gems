@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace Indigo
@@ -94,7 +96,7 @@ namespace Indigo
 
             BuildStaticLayer();
 
-            if (isOnlineGame && onlineColors.Any())
+            if (isOnlineGame && onlineColors?.Any() == true)
             {
                 playersButton.Visible = false;
                 MakeTokens(onlineColors);
@@ -104,32 +106,145 @@ namespace Indigo
         {
             return !isOnlineGame || yourTurn;
         }
-        public void ApplyRemoteTurn(TurnMessage turn)
+        public string CaptureStateHash()
         {
-            if (turn.TileIndex < 0 || turn.TileIndex >= tiles.Count)
+            GameStateSnapshot snapshot = CaptureSnapshot();
+            string json = JsonSerializer.Serialize(snapshot);
+            byte[] hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(json));
+            return Convert.ToHexString(hashBytes);
+        }
+        public GameStateSnapshot CaptureSnapshot()
+        {
+            return new GameStateSnapshot
+            {
+                CurrentPlayerIndex = currentPlayerIndex,
+                GemsLeft = gemsLeft,
+                PlayerScores = new List<float>(playersPoints),
+                Tiles = tiles.Select((tile, index) => new TileSnapshot
+                {
+                    TileIndex = index,
+                    BoardIndex = tile.index,
+                    Rotation = tile.numOfRotation,
+                    PositionX = tile.position.X,
+                    PositionY = tile.position.Y,
+                    Active = tile.active,
+                    Paths = tile.paths.ToList(),
+                    Neighbors = tile.neighbors.ToList()
+                }).ToList(),
+                Gems = gems.Select((gem, index) => new GemSnapshot
+                {
+                    GemIndex = index,
+                    OnTile = gem.onTile,
+                    OnPath = gem.onPath,
+                    PositionX = gem.position.X,
+                    PositionY = gem.position.Y,
+                    Active = gem.active
+                }).ToList()
+            };
+        }
+        public void ApplySnapshot(GameStateSnapshot snapshot)
+        {
+            if (snapshot.Tiles.Count != tiles.Count || snapshot.Gems.Count != gems.Count)
                 return;
 
-            Tile tile = tiles[turn.TileIndex];
+            placedTiles = new Tile[placedTiles.Length];
+            movingGems.Clear();
 
-            for (int i = 0; i < turn.Rotation; i++)
-                RotateTile(tile, true);
+            foreach (Tile tile in tiles)
+                tile.gemsInside.Clear();
 
-            if (turn.BoardIndex >= 0 && turn.BoardIndex < points.Length)
+            foreach (TileSnapshot tileState in snapshot.Tiles.OrderBy(t => t.TileIndex))
             {
-                Vector2 pos = points[turn.BoardIndex];
+                Tile tile = tiles[tileState.TileIndex];
 
-                tile.position = new Point(
-                    (int)(pos.X - Tile.width / 2f),
-                    (int)(pos.Y - Tile.height / 2f)
-                );
+                tile.index = tileState.BoardIndex;
+                tile.numOfRotation = ((tileState.Rotation % 6) + 6) % 6;
+                tile.position = new Point(tileState.PositionX, tileState.PositionY);
+                tile.rect.X = tile.position.X;
+                tile.rect.Y = tile.position.Y + Tile.height / 8;
+                tile.active = tileState.Active;
+                tile.paths = tileState.Paths.Take(6).Concat(Enumerable.Repeat(-1, 6)).Take(6).ToArray();
+                tile.neighbors = tileState.Neighbors.Take(6).Concat(Enumerable.Repeat(-1, 6)).Take(6).ToArray();
+
+                if (tile.name != "Center" && tile.name != "Edge")
+                    tile.picture = CreateTileImage(tile, tile.numOfRotation);
+
+                if (tile.index >= 0 && tile.index < placedTiles.Length)
+                    placedTiles[tile.index] = tile;
             }
 
-            Snap(tile);
+            foreach (GemSnapshot gemState in snapshot.Gems.OrderBy(g => g.GemIndex))
+            {
+                Gem gem = gems[gemState.GemIndex];
+                gem.onTile = gemState.OnTile;
+                gem.onPath = gemState.OnPath;
+                gem.position = new Point(gemState.PositionX, gemState.PositionY);
+                gem.active = gemState.Active;
 
-            currentPlayerIndex = (turn.PlayerIndex + 1) % numOfPlayers;
+                if (gem.active)
+                {
+                    movingGems.Add(gem);
+                    continue;
+                }
 
+                if (gem.onTile >= 0 && gem.onTile < placedTiles.Length && placedTiles[gem.onTile] != null)
+                    placedTiles[gem.onTile].gemsInside.Add(gem);
+            }
+
+            currentPlayerIndex = snapshot.CurrentPlayerIndex;
+            playersPoints = new List<float>(snapshot.PlayerScores);
+            gemsLeft = snapshot.GemsLeft;
             yourTurn = currentPlayerIndex == localPlayerId;
 
+            if (movingGems.Any())
+            {
+                m1 = new Movement();
+                GemTimer.Start();
+            }
+            else
+            {
+                GemTimer.Stop();
+            }
+
+            UpdateScoreLabels();
+            ShowCurrentTurnBanner();
+            BuildStaticLayer();
+            Board.Invalidate();
+        }
+        public bool ApplyAuthoritativeTurn(TurnMessage turn)
+        {
+            if (turn.TileIndex < 0 || turn.TileIndex >= tiles.Count)
+                return false;
+            if (turn.BoardIndex < 0 || turn.BoardIndex >= points.Length)
+                return false;
+
+            Tile tile = tiles[turn.TileIndex];
+            if (tile.index != -1)
+                return false;
+
+            tile.active = false;
+            SetTileRotation(tile, turn.Rotation);
+            tile.position = new Point(
+                (int)(points[turn.BoardIndex].X - Tile.width / 2f),
+                (int)(points[turn.BoardIndex].Y - Tile.height / 2f)
+            );
+
+            bool applied = Snap(tile, false);
+            if (!applied)
+                return false;
+
+            currentPlayerIndex = (turn.PlayerIndex + 1) % numOfPlayers;
+            yourTurn = currentPlayerIndex == localPlayerId;
+            ShowCurrentTurnBanner();
+            BuildStaticLayer();
+            Board.Invalidate();
+            return true;
+        }
+        public void FinalizeAuthoritativeTurn(int playerIndex)
+        {
+            currentPlayerIndex = (playerIndex + 1) % numOfPlayers;
+            yourTurn = currentPlayerIndex == localPlayerId;
+            ShowCurrentTurnBanner();
             BuildStaticLayer();
             Board.Invalidate();
         }
@@ -497,8 +612,12 @@ namespace Indigo
 
             return realNeighbors;
         }
-        private bool Snap(Tile tile)
+        private bool Snap(Tile tile, bool broadcastTurn = true)
         {
+            string stateHashBefore = string.Empty;
+            if (broadcastTurn && isOnlineGame && yourTurn && sendTurnAsync != null)
+                stateHashBefore = CaptureStateHash();
+
             Vector2 pos = new Vector2(tile.position.X + Tile.width / 2, tile.position.Y + Tile.height / 2);
             int index = GetClosestIndex(pos);
 
@@ -518,7 +637,7 @@ namespace Indigo
             tile.position = new Point(newX, newY);
             placedTiles[index] = tile;
 
-            if (isOnlineGame && yourTurn && sendTurnAsync != null)
+            if (broadcastTurn && isOnlineGame && yourTurn && sendTurnAsync != null)
             {
                 int tileIndex = tiles.IndexOf(tile);
 
@@ -526,8 +645,9 @@ namespace Indigo
                 {
                     PlayerIndex = currentPlayerIndex,
                     TileIndex = tileIndex,
-                    Rotation = tile.numOfRotation,              //TODO: change tile.index to the tile.placement or smt
-                    BoardIndex = tile.index
+                    Rotation = tile.numOfRotation,
+                    BoardIndex = tile.index,
+                    StateHashBefore = stateHashBefore
                 };
 
                 _ = sendTurnAsync(turn);
@@ -669,6 +789,34 @@ namespace Indigo
                 return 4;
             }
             return -1;
+        }
+        private Image CreateTileImage(Tile tile, int rotation)
+        {
+            int normalizedRotation = ((rotation % 6) + 6) % 6;
+            Image image = new Bitmap(tile.originalPic);
+
+            if (normalizedRotation == 0)
+                return image;
+
+            if (normalizedRotation == 3)
+            {
+                image.RotateFlip(RotateFlipType.Rotate180FlipNone);
+                return image;
+            }
+
+            return ImageUtils.RotateHex(image, 60f * normalizedRotation, Tile.width, Tile.height);
+        }
+        private void SetTileRotation(Tile tile, int rotation)
+        {
+            Tile template = new Tile(tile.templateId);
+
+            tile.numOfRotation = 0;
+            tile.paths = (int[])template.paths.Clone();
+            tile.picture = new Bitmap(tile.originalPic);
+
+            int normalizedRotation = ((rotation % 6) + 6) % 6;
+            for (int i = 0; i < normalizedRotation; i++)
+                RotateTile(tile, true);
         }
         private void RotateTile(Tile tile, bool clockwise)
         {
@@ -873,7 +1021,7 @@ namespace Indigo
 
                 lineAnimation = 0;
 
-                if (placedSuccessfully && playerTokens.Any())
+                if (placedSuccessfully && playerTokens.Any() && !isOnlineGame)
                     AdvanceTurn();
             }
 
@@ -967,6 +1115,9 @@ namespace Indigo
 
             if (m1.t > 1f)                          // if reached the end of road
             {
+                if (m1.nextTile == null)
+                    return;
+
                 gem.onPath = m1.willExitBy;
                 gem.onTile = m1.nextTile.index;
 
