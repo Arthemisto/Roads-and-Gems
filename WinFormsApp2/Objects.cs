@@ -38,59 +38,59 @@ namespace Indigo
         public Tile(int tileNumber)
         {
             rect = new Rectangle(position.X, position.Y, width, height - height / 4);
+            picture = Properties.Resources.BackOfTile;
 
             switch (tileNumber)
             {
                 case 0:
                     name = "Center";
-                    picture = Properties.Resources.Center_tile;
+                    originalPic = Properties.Resources.Center_tile;
                     paths = [0, 1, 2, 3, 4, 5];
 
                     break;
                 case 1:
                     name = "Edge";
-                    picture = Properties.Resources.Edge_tile;
+                    originalPic = Properties.Resources.Edge_tile;
                     paths = [2, 1, 0, -1, -1, -1];
 
                     break;
                 case 2:
                     name = "GoBack";
-                    picture = Properties.Resources.GoBack_tile;
+                    originalPic = Properties.Resources.GoBack_tile;
                     paths = [5, 2, 1, 4, 3, 0];
 
                     break;
                 case 3:
                     name = "LetterH";
-                    picture = Properties.Resources.LetterH_tile;
+                    originalPic = Properties.Resources.LetterH_tile;
                     paths = [2, 4, 0, 5, 1, 3];
 
                     break;
                 case 4:
                     name = "OneWay";
-                    picture = Properties.Resources.OneWay_tile;
+                    originalPic = Properties.Resources.OneWay_tile;
                     paths = [5, 4, 3, 2, 1, 0];
 
                     break;
                 case 5:
                     name = "Overlap";
-                    picture = Properties.Resources.Overlap_tile;
+                    originalPic = Properties.Resources.Overlap_tile;
                     paths = [3, 4, 5, 0, 1, 2];
 
                     break;
                 case 6:
                     name = "Sad";
-                    picture = Properties.Resources.Sad_tile;
+                    originalPic = Properties.Resources.Sad_tile;
                     paths = [5, 3, 4, 1, 2, 0];
 
                     break;
                 default:
                     name = "Null";
-                    picture = Properties.Resources.BackOfTile;
+                    originalPic = Properties.Resources.BackOfTile;
                     paths = [-1, -1, -1, -1, -1, -1];
 
                     break;
             }
-            originalPic = picture;
         }
     }
     internal class Gem : Object

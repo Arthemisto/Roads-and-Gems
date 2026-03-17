@@ -98,7 +98,12 @@ namespace Indigo
             {
                 playersButton.Visible = false;
                 MakeTokens(onlineColors);
+
+                if (localPlayerId == 0)
+                    GetNewTile();
             }
+            else
+                GetNewTile();
         }
         private bool IsLocalPlayersTurn()
         {
@@ -254,6 +259,8 @@ namespace Indigo
 
             if (newTile.name == "Center")
             {
+                newTile.picture = newTile.originalPic;
+
                 x_1 = (int)(points[0].X - Tile.width / 2f);
                 y_1 = (int)(points[0].Y - Tile.height / 2f);
                 newTile.index = 0;
@@ -261,6 +268,8 @@ namespace Indigo
             }
             else if (newTile.name == "Edge")
             {
+                newTile.picture = newTile.originalPic;
+
                 int[] temp = new int[6];
                 int p = 37 + (tileNumber + 2) % 6;
                 newTile.index = p;
@@ -285,8 +294,12 @@ namespace Indigo
             }
             else
             {
+                int spaceBetweenTypes = 215;        //  215 = magic number
+                if (!isOnlineGame)                  // TODO change !isOnlineGame to isOnlineGame
+                    spaceBetweenTypes = 100;
+
                 x_1 = boardSeparation;
-                y_1 = (int)(((picNumbers[tileNumber] - 2) * 215 + xPos) * scale); //  215 = magic number
+                y_1 = (int)(((picNumbers[tileNumber] - 2) * spaceBetweenTypes + xPos) * scale); 
 
                 if (tileNumber < 37 && (tileNumber - 7) % 6 == 0)
                     xPos -= 5;
@@ -535,12 +548,44 @@ namespace Indigo
                 yourTurn = false;
             }
 
+            GetNewTile();
+
             List<int> neighborIndexies = FindNeighbors(new_pos);
             if (!neighborIndexies.Any())
                 return true;
 
             EventsAfterPlacement(tile, neighborIndexies);
             return true;
+        }
+
+        private void GetNewTile()
+        {
+            Random rnd = new Random();
+            bool valid = false;
+
+            int tileNumber = rnd.Next(7, totalTiles - 7);
+            int origNumber = tileNumber;
+
+            do
+            {
+                if (tiles[tileNumber].index == -1)
+                    valid = true;
+                else
+                    tileNumber = (tileNumber + 1) % totalTiles;
+            } while (!valid && tileNumber != origNumber);
+
+            if (tiles[tileNumber].index != -1)
+                return;
+
+            tiles[tileNumber].picture = tiles[tileNumber].originalPic;
+
+            int temp = tiles[tileNumber].rect.Y - tiles[tileNumber].position.Y;
+
+            tiles[tileNumber].position.Y = (int)(700 * scale);
+            tiles[tileNumber].rect.Y = tiles[tileNumber].position.Y + temp;
+
+            BuildStaticLayer();
+            Board.Invalidate();
         }
         private void ShowCurrentTurnBanner()
         {
@@ -584,6 +629,7 @@ namespace Indigo
                 playerScoreLabels[i].Text = " 0";
             }
         }
+
         private void EventsAfterPlacement(Tile placedTile, List<int> neighborIndexies)
         {
             foreach (var index in neighborIndexies)
@@ -1003,6 +1049,11 @@ namespace Indigo
                             gems.Remove(gem);
                             movingGems.Remove(anotherGem);
                             movingGems.Remove(gem);
+
+                            gemsLeft -= 2;
+                            if (gemsLeft == 0)
+                                GameEnd();
+
                             return;
                         }
 
