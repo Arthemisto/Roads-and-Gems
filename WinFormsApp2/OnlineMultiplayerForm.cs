@@ -451,7 +451,7 @@ namespace Indigo
                         joinStatusLabel.Text = $"Starting game for {playerCount} players...";
                         BeginInvoke(() => LaunchOnlineGame(playerCount));
                     }
-                    else if (envelope.Type == "turn" && envelope.Turn != null)
+                    else if (envelope.Type == "turn" && envelope.Turn != null && envelope.PlayerId != localPlayerId)
                     {
                         activeGameForm?.ApplyRemoteTurn(envelope.Turn);
                     }

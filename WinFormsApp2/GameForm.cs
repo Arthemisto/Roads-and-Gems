@@ -116,6 +116,7 @@ namespace Indigo
 
             Tile tile = tiles[turn.TileIndex];
 
+            tile.picture = tile.originalPic;
             for (int i = 0; i < turn.Rotation; i++)
                 RotateTile(tile, true);
 
@@ -135,8 +136,7 @@ namespace Indigo
 
             yourTurn = currentPlayerIndex == localPlayerId;
 
-            BuildStaticLayer();
-            Board.Invalidate();
+            GetNewTile();
         }
         private bool CanConfigureOnlinePlayers()
         {
@@ -295,7 +295,7 @@ namespace Indigo
             else
             {
                 int spaceBetweenTypes = 215;        //  215 = magic number
-                if (!isOnlineGame)                  // TODO change !isOnlineGame to isOnlineGame
+                if (isOnlineGame)                  // TODO change !isOnlineGame to isOnlineGame
                     spaceBetweenTypes = 100;
 
                 x_1 = boardSeparation;
@@ -548,7 +548,8 @@ namespace Indigo
                 yourTurn = false;
             }
 
-            GetNewTile();
+            if (!isOnlineGame)
+                GetNewTile();
 
             List<int> neighborIndexies = FindNeighbors(new_pos);
             if (!neighborIndexies.Any())
