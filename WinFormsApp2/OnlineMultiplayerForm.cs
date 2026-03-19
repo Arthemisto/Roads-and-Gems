@@ -3,6 +3,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
 namespace Indigo
 {
@@ -27,6 +28,7 @@ namespace Indigo
         private int maxPlayers = 4;
         private int[] sizesOfObjects;
         private float percent;
+        private char chColor = 'W';
 
         public OnlineMultiplayerForm(int[] sizesOfObjects, float percent)
         {
@@ -38,6 +40,9 @@ namespace Indigo
             playerNameTextBox.Text = $"{Environment.UserName}";
             RefreshPlayerList();
             UpdateHostShareTargets();
+
+            startHosting(true);
+            logTextBox.Clear();
         }
 
         private void UpdateOnlineColors()
@@ -69,7 +74,7 @@ namespace Indigo
             }
         }
 
-        private async void startHostingButton_Click(object sender, EventArgs e)
+        private async void startHosting(bool stopImmediately)
         {
             if (isHosting || isConnectedAsClient)
                 return;
@@ -90,7 +95,7 @@ namespace Indigo
                 connectedPlayers.Add(new OnlinePlayerInfo
                 {
                     PlayerId = 0,
-                    Name = playerName,
+                    Name = playerName + ' ' + chColor,
                     IsHost = true
                 });
                 localPlayerId = 0;
@@ -112,6 +117,13 @@ namespace Indigo
                 hostStatusLabel.Text = "Host start failed";
                 await StopHostingAsync();
             }
+
+            if (stopImmediately)
+                await StopHostingAsync();
+        }
+        private void startHostingButton_Click(object sender, EventArgs e)
+        {
+            startHosting(false);
         }
 
         private async Task AcceptLoopAsync(CancellationToken cancellationToken)
@@ -376,7 +388,7 @@ namespace Indigo
                 await SendEnvelopeAsync(clientWriter, new OnlineSessionEnvelope
                 {
                     Type = "hello",
-                    PlayerName = playerName
+                    PlayerName = playerName + ' ' + chColor
                 }, clientCts.Token);
 
                 string? responseLine = await reader.ReadLineAsync(clientCts.Token);
@@ -830,6 +842,37 @@ namespace Indigo
             public required TcpClient TcpClient { get; init; }
             public required StreamWriter Writer { get; init; }
             public required OnlinePlayerInfo Player { get; init; }
+        }
+
+        private void picture_Click(object sender, EventArgs e)
+        {
+            chooseColors((PictureBox)sender);
+        }
+
+        public void chooseColors(PictureBox chosen)
+        {
+            pictureOfColor1.BackColor = Color.FromArgb(64, 64, 64);
+            pictureOfColor2.BackColor = Color.FromArgb(64, 64, 64);
+            pictureOfColor3.BackColor = Color.FromArgb(64, 64, 64);
+            pictureOfColor4.BackColor = Color.FromArgb(64, 64, 64);
+
+            chosen.BackColor = Color.LightGreen;
+            
+            switch (chosen.Tag)
+            {
+                case "1":
+                    chColor = 'C';
+                    break;
+                case "2":
+                    chColor = 'P';
+                    break;
+                case "3":
+                    chColor = 'R';
+                    break;
+                default:
+                    chColor = 'W';
+                    break;
+            }
         }
     }
 }

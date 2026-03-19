@@ -22,6 +22,14 @@ namespace Indigo
             nameLabel = new Label();
             playerNameTextBox = new TextBox();
             lobbyTabs = new TabControl();
+            joinPage = new TabPage();
+            disconnectButton = new Button();
+            joinStatusLabel = new Label();
+            connectButton = new Button();
+            joinPortInput = new NumericUpDown();
+            joinPortLabel = new Label();
+            joinIpTextBox = new TextBox();
+            joinIpLabel = new Label();
             hostPage = new TabPage();
             hostStatusLabel = new Label();
             copyHostIpButton = new Button();
@@ -33,14 +41,6 @@ namespace Indigo
             hostPortLabel = new Label();
             hostMaxPlayersInput = new NumericUpDown();
             hostMaxPlayersLabel = new Label();
-            joinPage = new TabPage();
-            disconnectButton = new Button();
-            joinStatusLabel = new Label();
-            connectButton = new Button();
-            joinPortInput = new NumericUpDown();
-            joinPortLabel = new Label();
-            joinIpTextBox = new TextBox();
-            joinIpLabel = new Label();
             playersLabel = new Label();
             playersListBox = new ListBox();
             logLabel = new Label();
@@ -48,13 +48,21 @@ namespace Indigo
             startGameButton = new Button();
             closeButton = new Button();
             formRefreshTimer = new System.Windows.Forms.Timer(components);
-            labelOfReq = new Label();
+            pictureOfColor4 = new PictureBox();
+            pictureOfColor3 = new PictureBox();
+            pictureOfColor2 = new PictureBox();
+            pictureOfColor1 = new PictureBox();
+            label1 = new Label();
             lobbyTabs.SuspendLayout();
+            joinPage.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)joinPortInput).BeginInit();
             hostPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)hostPortInput).BeginInit();
             ((System.ComponentModel.ISupportInitialize)hostMaxPlayersInput).BeginInit();
-            joinPage.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)joinPortInput).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureOfColor4).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureOfColor3).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureOfColor2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureOfColor1).BeginInit();
             SuspendLayout();
             // 
             // titleLabel
@@ -91,12 +99,97 @@ namespace Indigo
             // lobbyTabs
             // 
             lobbyTabs.Controls.Add(joinPage);
-            lobbyTabs.Controls.Add(hostPage); 
+            lobbyTabs.Controls.Add(hostPage);
             lobbyTabs.Location = new Point(25, 135);
             lobbyTabs.Name = "lobbyTabs";
             lobbyTabs.SelectedIndex = 0;
             lobbyTabs.Size = new Size(419, 342);
             lobbyTabs.TabIndex = 3;
+            // 
+            // joinPage
+            // 
+            joinPage.BackColor = Color.FromArgb(80, 80, 80);
+            joinPage.Controls.Add(disconnectButton);
+            joinPage.Controls.Add(joinStatusLabel);
+            joinPage.Controls.Add(connectButton);
+            joinPage.Controls.Add(joinPortInput);
+            joinPage.Controls.Add(joinPortLabel);
+            joinPage.Controls.Add(joinIpTextBox);
+            joinPage.Controls.Add(joinIpLabel);
+            joinPage.Location = new Point(4, 29);
+            joinPage.Name = "joinPage";
+            joinPage.Padding = new Padding(3);
+            joinPage.Size = new Size(411, 309);
+            joinPage.TabIndex = 1;
+            joinPage.Text = "Join";
+            // 
+            // disconnectButton
+            // 
+            disconnectButton.Enabled = false;
+            disconnectButton.Location = new Point(218, 91);
+            disconnectButton.Name = "disconnectButton";
+            disconnectButton.Size = new Size(175, 32);
+            disconnectButton.TabIndex = 6;
+            disconnectButton.Text = "Disconnect";
+            disconnectButton.UseVisualStyleBackColor = true;
+            disconnectButton.Click += disconnectButton_Click;
+            // 
+            // joinStatusLabel
+            // 
+            joinStatusLabel.BackColor = Color.Gray;
+            joinStatusLabel.Location = new Point(16, 146);
+            joinStatusLabel.Name = "joinStatusLabel";
+            joinStatusLabel.Size = new Size(377, 96);
+            joinStatusLabel.TabIndex = 5;
+            joinStatusLabel.Text = "Join idle";
+            // 
+            // connectButton
+            // 
+            connectButton.Location = new Point(16, 91);
+            connectButton.Name = "connectButton";
+            connectButton.Size = new Size(175, 32);
+            connectButton.TabIndex = 4;
+            connectButton.Text = "Connect";
+            connectButton.UseVisualStyleBackColor = true;
+            connectButton.Click += connectButton_Click;
+            // 
+            // joinPortInput
+            // 
+            joinPortInput.Location = new Point(286, 47);
+            joinPortInput.Maximum = new decimal(new int[] { 65535, 0, 0, 0 });
+            joinPortInput.Minimum = new decimal(new int[] { 1024, 0, 0, 0 });
+            joinPortInput.Name = "joinPortInput";
+            joinPortInput.Size = new Size(107, 27);
+            joinPortInput.TabIndex = 3;
+            joinPortInput.Value = new decimal(new int[] { 4040, 0, 0, 0 });
+            // 
+            // joinPortLabel
+            // 
+            joinPortLabel.BackColor = Color.Gray;
+            joinPortLabel.Location = new Point(218, 47);
+            joinPortLabel.Name = "joinPortLabel";
+            joinPortLabel.Size = new Size(58, 27);
+            joinPortLabel.TabIndex = 2;
+            joinPortLabel.Text = "Port";
+            joinPortLabel.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // joinIpTextBox
+            // 
+            joinIpTextBox.Location = new Point(84, 16);
+            joinIpTextBox.Name = "joinIpTextBox";
+            joinIpTextBox.Size = new Size(309, 27);
+            joinIpTextBox.TabIndex = 1;
+            joinIpTextBox.Text = "127.0.0.1";
+            // 
+            // joinIpLabel
+            // 
+            joinIpLabel.BackColor = Color.Gray;
+            joinIpLabel.Location = new Point(16, 16);
+            joinIpLabel.Name = "joinIpLabel";
+            joinIpLabel.Size = new Size(58, 27);
+            joinIpLabel.TabIndex = 0;
+            joinIpLabel.Text = "IP";
+            joinIpLabel.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // hostPage
             // 
@@ -218,91 +311,6 @@ namespace Indigo
             hostMaxPlayersLabel.Text = "Max players";
             hostMaxPlayersLabel.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // joinPage
-            // 
-            joinPage.BackColor = Color.FromArgb(80, 80, 80);
-            joinPage.Controls.Add(disconnectButton);
-            joinPage.Controls.Add(joinStatusLabel);
-            joinPage.Controls.Add(connectButton);
-            joinPage.Controls.Add(joinPortInput);
-            joinPage.Controls.Add(joinPortLabel);
-            joinPage.Controls.Add(joinIpTextBox);
-            joinPage.Controls.Add(joinIpLabel);
-            joinPage.Location = new Point(4, 29);
-            joinPage.Name = "joinPage";
-            joinPage.Padding = new Padding(3);
-            joinPage.Size = new Size(411, 309);
-            joinPage.TabIndex = 1;
-            joinPage.Text = "Join";
-            // 
-            // disconnectButton
-            // 
-            disconnectButton.Enabled = false;
-            disconnectButton.Location = new Point(218, 91);
-            disconnectButton.Name = "disconnectButton";
-            disconnectButton.Size = new Size(175, 32);
-            disconnectButton.TabIndex = 6;
-            disconnectButton.Text = "Disconnect";
-            disconnectButton.UseVisualStyleBackColor = true;
-            disconnectButton.Click += disconnectButton_Click;
-            // 
-            // joinStatusLabel
-            // 
-            joinStatusLabel.BackColor = Color.Gray;
-            joinStatusLabel.Location = new Point(16, 146);
-            joinStatusLabel.Name = "joinStatusLabel";
-            joinStatusLabel.Size = new Size(377, 96);
-            joinStatusLabel.TabIndex = 5;
-            joinStatusLabel.Text = "Join idle";
-            // 
-            // connectButton
-            // 
-            connectButton.Location = new Point(16, 91);
-            connectButton.Name = "connectButton";
-            connectButton.Size = new Size(175, 32);
-            connectButton.TabIndex = 4;
-            connectButton.Text = "Connect";
-            connectButton.UseVisualStyleBackColor = true;
-            connectButton.Click += connectButton_Click;
-            // 
-            // joinPortInput
-            // 
-            joinPortInput.Location = new Point(286, 47);
-            joinPortInput.Maximum = new decimal(new int[] { 65535, 0, 0, 0 });
-            joinPortInput.Minimum = new decimal(new int[] { 1024, 0, 0, 0 });
-            joinPortInput.Name = "joinPortInput";
-            joinPortInput.Size = new Size(107, 27);
-            joinPortInput.TabIndex = 3;
-            joinPortInput.Value = new decimal(new int[] { 4040, 0, 0, 0 });
-            // 
-            // joinPortLabel
-            // 
-            joinPortLabel.BackColor = Color.Gray;
-            joinPortLabel.Location = new Point(218, 47);
-            joinPortLabel.Name = "joinPortLabel";
-            joinPortLabel.Size = new Size(58, 27);
-            joinPortLabel.TabIndex = 2;
-            joinPortLabel.Text = "Port";
-            joinPortLabel.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // joinIpTextBox
-            // 
-            joinIpTextBox.Location = new Point(84, 16);
-            joinIpTextBox.Name = "joinIpTextBox";
-            joinIpTextBox.Size = new Size(309, 27);
-            joinIpTextBox.TabIndex = 1;
-            joinIpTextBox.Text = "127.0.0.1";
-            // 
-            // joinIpLabel
-            // 
-            joinIpLabel.BackColor = Color.Gray;
-            joinIpLabel.Location = new Point(16, 16);
-            joinIpLabel.Name = "joinIpLabel";
-            joinIpLabel.Size = new Size(58, 27);
-            joinIpLabel.TabIndex = 0;
-            joinIpLabel.Text = "IP";
-            joinIpLabel.TextAlign = ContentAlignment.MiddleCenter;
-            // 
             // playersLabel
             // 
             playersLabel.BackColor = Color.Gray;
@@ -370,16 +378,64 @@ namespace Indigo
             formRefreshTimer.Interval = 500;
             formRefreshTimer.Tick += formRefreshTimer_Tick;
             // 
-            // labelOfReq
+            // pictureOfColor4
             // 
-            labelOfReq.AutoSize = true;
-            labelOfReq.BackColor = Color.IndianRed;
-            labelOfReq.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            labelOfReq.Location = new Point(462, 87);
-            labelOfReq.Name = "labelOfReq";
-            labelOfReq.Size = new Size(330, 28);
-            labelOfReq.TabIndex = 10;
-            labelOfReq.Text = "Add to the end W, R, C or P for color";
+            pictureOfColor4.Image = Properties.Resources.White_point;
+            pictureOfColor4.Location = new Point(810, 76);
+            pictureOfColor4.Name = "pictureOfColor4";
+            pictureOfColor4.Size = new Size(50, 50);
+            pictureOfColor4.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureOfColor4.TabIndex = 11;
+            pictureOfColor4.TabStop = false;
+            pictureOfColor4.Tag = "4";
+            pictureOfColor4.Click += picture_Click;
+            // 
+            // pictureOfColor3
+            // 
+            pictureOfColor3.Image = Properties.Resources.Red_point;
+            pictureOfColor3.Location = new Point(743, 76);
+            pictureOfColor3.Name = "pictureOfColor3";
+            pictureOfColor3.Size = new Size(50, 50);
+            pictureOfColor3.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureOfColor3.TabIndex = 12;
+            pictureOfColor3.TabStop = false;
+            pictureOfColor3.Tag = "3";
+            pictureOfColor3.Click += picture_Click;
+            // 
+            // pictureOfColor2
+            // 
+            pictureOfColor2.Image = Properties.Resources.Purple_point;
+            pictureOfColor2.Location = new Point(679, 76);
+            pictureOfColor2.Name = "pictureOfColor2";
+            pictureOfColor2.Size = new Size(50, 50);
+            pictureOfColor2.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureOfColor2.TabIndex = 13;
+            pictureOfColor2.TabStop = false;
+            pictureOfColor2.Tag = "2";
+            pictureOfColor2.Click += picture_Click;
+            // 
+            // pictureOfColor1
+            // 
+            pictureOfColor1.Image = Properties.Resources.Cyan_point;
+            pictureOfColor1.Location = new Point(612, 76);
+            pictureOfColor1.Name = "pictureOfColor1";
+            pictureOfColor1.Size = new Size(50, 50);
+            pictureOfColor1.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureOfColor1.TabIndex = 14;
+            pictureOfColor1.TabStop = false;
+            pictureOfColor1.Tag = "1";
+            pictureOfColor1.Click += picture_Click;
+            // 
+            // label1
+            // 
+            label1.BackColor = Color.IndianRed;
+            label1.Font = new Font("Segoe UI", 12F);
+            label1.Location = new Point(462, 84);
+            label1.Name = "label1";
+            label1.Size = new Size(127, 34);
+            label1.TabIndex = 15;
+            label1.Text = "Select color:";
+            label1.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // OnlineMultiplayerForm
             // 
@@ -387,7 +443,11 @@ namespace Indigo
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(64, 64, 64);
             ClientSize = new Size(884, 514);
-            Controls.Add(labelOfReq);
+            Controls.Add(label1);
+            Controls.Add(pictureOfColor1);
+            Controls.Add(pictureOfColor2);
+            Controls.Add(pictureOfColor3);
+            Controls.Add(pictureOfColor4);
             Controls.Add(startGameButton);
             Controls.Add(closeButton);
             Controls.Add(logTextBox);
@@ -403,12 +463,16 @@ namespace Indigo
             Text = "Online Multiplayer";
             FormClosing += OnlineMultiplayerForm_FormClosing;
             lobbyTabs.ResumeLayout(false);
-            hostPage.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)hostPortInput).EndInit();
-            ((System.ComponentModel.ISupportInitialize)hostMaxPlayersInput).EndInit();
             joinPage.ResumeLayout(false);
             joinPage.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)joinPortInput).EndInit();
+            hostPage.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)hostPortInput).EndInit();
+            ((System.ComponentModel.ISupportInitialize)hostMaxPlayersInput).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureOfColor4).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureOfColor3).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureOfColor2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureOfColor1).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -445,6 +509,10 @@ namespace Indigo
         private Button startGameButton;
         private Button closeButton;
         private System.Windows.Forms.Timer formRefreshTimer;
-        private Label labelOfReq;
+        private PictureBox pictureOfColor4;
+        private PictureBox pictureOfColor3;
+        private PictureBox pictureOfColor2;
+        private PictureBox pictureOfColor1;
+        private Label label1;
     }
 }

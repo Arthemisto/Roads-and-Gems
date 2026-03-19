@@ -131,17 +131,12 @@ namespace Indigo
 
             Snap(tile);
 
-            currentPlayerIndex = (turn.PlayerIndex + 1) % numOfPlayers;
-
-            yourTurn = currentPlayerIndex == localPlayerId;
-
-            AdvanceTurn();
+            AdvanceTurn(turn.PlayerIndex);
         }
         private bool CanConfigureOnlinePlayers()
         {
             return !isOnlineGame || localPlayerId == 0;
         }
-
         private void SetUpPlayerUi()
         {
             playerIcons = [player0, player1, player2, player3];
@@ -242,7 +237,7 @@ namespace Indigo
                 MakeGems(i);
                 gemsLeft++;
             }
-                
+
             debugLabel1.Text = "                (w by h) \nWindow: " + Width + " by " + Height +
                 "\nBoard: \t\t" + Board.Width + " by " + Board.Height +
                 "\nBoardImage: " + BoardImage.Width + " by " + BoardImage.Height;
@@ -301,7 +296,7 @@ namespace Indigo
                 }
 
                 x_1 = boardSeparation;
-                y_1 = (int)(((picNumbers[tileNumber] - 2) * spaceBetweenTypes + xPos) * scale); 
+                y_1 = (int)(((picNumbers[tileNumber] - 2) * spaceBetweenTypes + xPos) * scale);
 
                 if (tileNumber < 37 && (tileNumber - 7) % 6 == 0)
                     xPos -= 5;
@@ -356,11 +351,11 @@ namespace Indigo
         private void MakeTokens(List<string> colors)
         {
             int tokenId = 0;
-            
+
             playerTokens.Clear();
             playerColors = new List<string>(colors);
             gatewayOwners = CreateGatewayOwners(colors.Count);
-            
+
             foreach (int[] owners in gatewayOwners)
                 foreach (int owner in owners)
                 {
@@ -583,7 +578,7 @@ namespace Indigo
 
             availableTileId = tiles[tileNumber].id;
             tiles[tileNumber].picture = tiles[tileNumber].originalPic;
-            
+
             int realVsHitboxDiff = tiles[tileNumber].rect.Y - tiles[tileNumber].position.Y;
 
             tiles[tileNumber].position.Y = (int)(700 * scale);
@@ -592,15 +587,19 @@ namespace Indigo
             BuildStaticLayer();
             Board.Invalidate();
         }
-        private void AdvanceTurn()
+        private void AdvanceTurn(int lastPlayerIndex)
         {
+            currentPlayerIndex = (lastPlayerIndex + 1) % numOfPlayers;
+
+            yourTurn = currentPlayerIndex == localPlayerId;
+
             if (numOfPlayers <= 0)
                 return;
 
-            currentPlayerIndex = (currentPlayerIndex + 1) % numOfPlayers;
-
-            if (currentPlayerIndex == localPlayerId)
+            if (yourTurn)
                 GetNewTile();
+
+            //currentPlayerIndex = (currentPlayerIndex + 1) % numOfPlayers;
 
             ShowCurrentTurnBanner();
         }
@@ -813,7 +812,7 @@ namespace Indigo
                 if (playersPoints[localPlayerId] < playersPoints[i])
                     youWon = false;
 
-            using (var form = new GameEndForm(youWon)) 
+            using (var form = new GameEndForm(youWon))
             {
                 if (form.ShowDialog() == DialogResult.OK)
                     Close();
@@ -887,7 +886,7 @@ namespace Indigo
                     {
                         if (isOnlineGame && newTile.id != availableTileId)
                             return;
-                        
+
                         selectedTile = newTile;
                         newTile.active = true;
 
@@ -935,7 +934,7 @@ namespace Indigo
                 lineAnimation = 0;
 
                 if (placedSuccessfully && playerTokens.Any())
-                    AdvanceTurn();
+                    AdvanceTurn(localPlayerId);
             }
 
             BuildStaticLayer();
