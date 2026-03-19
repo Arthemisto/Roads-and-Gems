@@ -88,7 +88,7 @@ namespace Indigo
             var centerY = boardImage.position.Y + BoardImage.Height / 2;
             Vector2 center = new Vector2(centerX, centerY);
 
-            points = CreateHexGrid(center, rings, distanceFromCtoC);
+            points = GameBoardLogic.CreateHexGrid(center, rings, distanceFromCtoC);
 
             SetUpApp();
             SetUpPlayerUi();
@@ -354,7 +354,7 @@ namespace Indigo
 
             playerTokens.Clear();
             playerColors = new List<string>(colors);
-            gatewayOwners = CreateGatewayOwners(colors.Count);
+            gatewayOwners = GameBoardLogic.CreateGatewayOwners(colors.Count);
 
             foreach (int[] owners in gatewayOwners)
                 foreach (int owner in owners)
@@ -397,37 +397,7 @@ namespace Indigo
         }
         private List<int[]> CreateGatewayOwners(int playerCount)
         {
-            return playerCount switch
-            {
-                2 =>
-                [
-                    [0, 0],
-                    [1, 1],
-                    [0, 0],
-                    [1, 1],
-                    [0, 0],
-                    [1, 1]
-                ],
-                3 =>
-                [
-                    [0, 0],
-                    [0, 1],
-                    [2, 2],
-                    [2, 0],
-                    [1, 1],
-                    [1, 2]
-                ],
-                4 =>
-                [
-                    [0, 1],
-                    [1, 2],
-                    [0, 3],
-                    [3, 1],
-                    [2, 0],
-                    [2, 3]
-                ],
-                _ => throw new InvalidOperationException($"Unsupported player count: {playerCount}")
-            };
+            return GameBoardLogic.CreateGatewayOwners(playerCount);
         }
         private Image GetPlayerPicture(int playerIndex)
         {
@@ -435,35 +405,7 @@ namespace Indigo
         }
         public Vector2[] CreateHexGrid(Vector2 center, int totalNumOfRings, float originalR)
         {
-            var points = new List<Vector2> { center };
-            var r = originalR;
-
-            for (int ring = 1; ring < totalNumOfRings; ring++)
-            {
-                for (int a = 0; a < 6; a++)
-                {
-                    var x_1 = center.X + r * (float)Math.Cos(a * 60 * Math.PI / 180f);
-                    var y_1 = center.Y + r * (float)Math.Sin(a * 60 * Math.PI / 180f);
-                    points.Add(new Vector2(x_1, y_1));
-                }
-                r += originalR;
-
-                if (totalNumOfRings < 3 || ring == 1)
-                    continue;
-
-                int first = points.Count() - 6;
-
-                for (int i = 0; i < 5; i++)
-                    for (int j = 1; j < ring; j++)
-                    {
-                        Vector2 middlepoint = (Vector2.Lerp(points[first + i], points[first + i + 1], (float)j / ring));
-                        points.Add(middlepoint);
-                    }
-
-                for (int j = 1; j < ring; j++)
-                    points.Add(Vector2.Lerp(points[first + 5], points[first], (float)j / ring));
-            }
-            return points.ToArray();
+            return GameBoardLogic.CreateHexGrid(center, totalNumOfRings, originalR);
         }
 
         public int GetClosestIndex(Vector2 v1)

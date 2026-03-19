@@ -52,30 +52,9 @@ namespace Indigo
         private void UpdateOnlineColors()
         {
             onlineColors.Clear();
-
-            foreach (OnlinePlayerInfo player in connectedPlayers.OrderBy(p => p.PlayerId))
-            {
-                string name = player.Name.Trim();
-
-                if (string.IsNullOrEmpty(name))
-                {
-                    onlineColors.Add("White");
-                    continue;
-                }
-
-                char lastLetter = char.ToUpper(name[^1]);
-
-                string color = lastLetter switch
-                {
-                    'W' => "White",
-                    'R' => "Red",
-                    'C' => "Cyan",
-                    'P' => "Purple",
-                    _ => "White"
-                };
-
-                onlineColors.Add(color);
-            }
+            onlineColors.AddRange(
+                OnlineLobbyLogic.MapPlayerColors(
+                    connectedPlayers.OrderBy(p => p.PlayerId).Select(p => p.Name)));
         }
 
         private async void startHosting(bool stopImmediately)
@@ -594,30 +573,7 @@ namespace Indigo
 
         private static bool TryParseEndpoint(string rawValue, out string ip, out int port)
         {
-            ip = rawValue;
-            port = 0;
-
-            if (rawValue.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-                rawValue = rawValue.Substring("https://".Length);
-            else if (rawValue.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
-                rawValue = rawValue.Substring("http://".Length);
-
-            int separatorIndex = rawValue.LastIndexOf(':');
-            if (separatorIndex <= 0 || separatorIndex >= rawValue.Length - 1)
-                return false;
-
-            string candidateIp = rawValue[..separatorIndex].Trim();
-            string candidatePort = rawValue[(separatorIndex + 1)..].Trim();
-
-            if (!int.TryParse(candidatePort, out int parsedPort))
-                return false;
-
-            if (parsedPort < 1024 || parsedPort > 65535)
-                return false;
-
-            ip = candidateIp;
-            port = parsedPort;
-            return true;
+            return OnlineLobbyLogic.TryParseEndpoint(rawValue, out ip, out port);
         }
 
         private void RefreshPlayerList()

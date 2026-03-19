@@ -1,4 +1,4 @@
-﻿namespace Indigo
+namespace Indigo
 {
     public partial class PlayerForm : Form
     {
