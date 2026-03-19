@@ -581,6 +581,11 @@ namespace Indigo
             ip = rawValue;
             port = 0;
 
+            if (rawValue.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                rawValue = rawValue.Substring("https://".Length);
+            else if (rawValue.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+                rawValue = rawValue.Substring("http://".Length);
+
             int separatorIndex = rawValue.LastIndexOf(':');
             if (separatorIndex <= 0 || separatorIndex >= rawValue.Length - 1)
                 return false;

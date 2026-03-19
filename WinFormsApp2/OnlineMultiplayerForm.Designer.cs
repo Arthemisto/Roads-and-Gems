@@ -90,8 +90,8 @@ namespace Indigo
             // 
             // lobbyTabs
             // 
-            lobbyTabs.Controls.Add(hostPage);
             lobbyTabs.Controls.Add(joinPage);
+            lobbyTabs.Controls.Add(hostPage); 
             lobbyTabs.Location = new Point(25, 135);
             lobbyTabs.Name = "lobbyTabs";
             lobbyTabs.SelectedIndex = 0;

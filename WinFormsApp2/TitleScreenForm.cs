@@ -8,14 +8,14 @@ namespace Indigo
         float percent = 1;
 
         int[] sizesOfObjects = [
-            BoardImage.width,
-            BoardImage.height,
-            Tile.width,
-            Tile.height,
-            Gem.width,
-            Gem.height,
-            PlayerToken.width,
-            PlayerToken.height
+            BoardImage.Width,
+            BoardImage.Height,
+            Tile.Width,
+            Tile.Height,
+            Gem.Width,
+            Gem.Height,
+            PlayerToken.Width,
+            PlayerToken.Height
         ];
 
         public TitleScreenForm()

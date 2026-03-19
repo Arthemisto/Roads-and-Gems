@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
@@ -25,6 +26,7 @@ namespace Indigo
         Tile? selectedTile;                                         // important objects
         Movement m1 = new Movement();
         Bitmap? staticLayer;
+        int? availableTileId;
 
         int rings = 5;
         int totalTiles = 0;
@@ -34,8 +36,7 @@ namespace Indigo
         float scale = 1;
 
         int xPos = 50;
-        int boardSeparation = 20;
-        int tileNumber = -1;                                        // tile creation and movement visuals
+        int boardSeparation = 20;           // tile creation and movement visuals
         int lineAnimation = 0;
         int currentPlayerIndex = 0;
         int gemsLeft = 0;
@@ -78,13 +79,13 @@ namespace Indigo
             SizeAdjustments(sizesOfObjects, percent);
 
             boardImage = new BoardImage();
-            boardImage.position.X = boardSeparation * 2 + Tile.width;
+            boardImage.position.X = boardSeparation * 2 + Tile.Width;
             boardImage.position.Y = boardSeparation;
 
-            distanceFromCtoC = Tile.width;
+            distanceFromCtoC = Tile.Width;
 
-            var centerX = boardImage.position.X + BoardImage.width / 2;
-            var centerY = boardImage.position.Y + BoardImage.height / 2;
+            var centerX = boardImage.position.X + BoardImage.Width / 2;
+            var centerY = boardImage.position.Y + BoardImage.Height / 2;
             Vector2 center = new Vector2(centerX, centerY);
 
             points = CreateHexGrid(center, rings, distanceFromCtoC);
@@ -102,8 +103,6 @@ namespace Indigo
                 if (localPlayerId == 0)
                     GetNewTile();
             }
-            else
-                GetNewTile();
         }
         private bool IsLocalPlayersTurn()
         {
@@ -125,8 +124,8 @@ namespace Indigo
                 Vector2 pos = points[turn.BoardIndex];
 
                 tile.position = new Point(
-                    (int)(pos.X - Tile.width / 2f),
-                    (int)(pos.Y - Tile.height / 2f)
+                    (int)(pos.X - Tile.Width / 2f),
+                    (int)(pos.Y - Tile.Height / 2f)
                 );
             }
 
@@ -136,7 +135,7 @@ namespace Indigo
 
             yourTurn = currentPlayerIndex == localPlayerId;
 
-            GetNewTile();
+            AdvanceTurn();
         }
         private bool CanConfigureOnlinePlayers()
         {
@@ -148,29 +147,30 @@ namespace Indigo
             playerIcons = [player0, player1, player2, player3];
             playerScoreLabels = [playerScore0, playerScore1, playerScore2, playerScore3];
         }
+
         private void SizeAdjustments(int[] sizesOfObjects, float percent)
         {
             this.Width = (int)(this.Width * (percent + 0.1));
             this.Height = (int)(this.Height * (percent + 0.1));
 
-            BoardImage.width = sizesOfObjects[0] + widthOffset;
-            BoardImage.height = sizesOfObjects[1] + heightOffset;
+            BoardImage.Width = sizesOfObjects[0] + widthOffset;
+            BoardImage.Height = sizesOfObjects[1] + heightOffset;
 
-            BoardImage.width = (int)(BoardImage.width * percent);
-            BoardImage.height = (int)(BoardImage.height * percent);
+            BoardImage.Width = (int)(BoardImage.Width * percent);
+            BoardImage.Height = (int)(BoardImage.Height * percent);
 
-            Tile.width = (int)(sizesOfObjects[2] * percent);
-            Tile.height = (int)(sizesOfObjects[3] * percent);
+            Tile.Width = (int)(sizesOfObjects[2] * percent);
+            Tile.Height = (int)(sizesOfObjects[3] * percent);
 
-            Gem.width = (int)(sizesOfObjects[4] * percent);
-            Gem.height = (int)(sizesOfObjects[5] * percent);
+            Gem.Width = (int)(sizesOfObjects[4] * percent);
+            Gem.Height = (int)(sizesOfObjects[5] * percent);
 
-            PlayerToken.width = (int)(sizesOfObjects[6] * percent);
-            PlayerToken.height = (int)(sizesOfObjects[7] * percent);
+            PlayerToken.Width = (int)(sizesOfObjects[6] * percent);
+            PlayerToken.Height = (int)(sizesOfObjects[7] * percent);
 
             boardSeparation = (int)(boardSeparation * (percent + 0.1));
-            Board.Width = boardSeparation * 3 + Tile.width + BoardImage.width;
-            Board.Height = boardSeparation * 2 + BoardImage.height;
+            Board.Width = boardSeparation * 3 + Tile.Width + BoardImage.Width;
+            Board.Height = boardSeparation * 2 + BoardImage.Height;
 
             //this.Width = Board.Location.X + BoardImage.width + boardSeparation;
             //this.Height = Board.Location.Y + BoardImage.height + boardSeparation;
@@ -194,7 +194,7 @@ namespace Indigo
 
             debugLabel1.Text = "                (w by h) \nWindow: " + Width + " by " + Height +
                 "\nBoard: \t\t" + Board.Width + " by " + Board.Height +
-                "\nBoardImage: " + BoardImage.width + " by " + BoardImage.height;
+                "\nBoardImage: " + BoardImage.Width + " by " + BoardImage.Height;
         }
         private void SetUpApp()
         {
@@ -221,7 +221,7 @@ namespace Indigo
 
             totalTiles = picNumbers.Count;
             for (int i = 0; i < totalTiles; i++)
-                MakeTiles();
+                MakeTiles(i);
 
             picNumbers.Clear();
 
@@ -245,15 +245,14 @@ namespace Indigo
                 
             debugLabel1.Text = "                (w by h) \nWindow: " + Width + " by " + Height +
                 "\nBoard: \t\t" + Board.Width + " by " + Board.Height +
-                "\nBoardImage: " + BoardImage.width + " by " + BoardImage.height;
+                "\nBoardImage: " + BoardImage.Width + " by " + BoardImage.Height;
         }
 
-        private void MakeTiles()
+        private void MakeTiles(int tileNumber)
         {
-            tileNumber++;
-            Tile newTile = new Tile(picNumbers[tileNumber]);
-            int placedIndex = -1;
+            Tile newTile = new Tile(tileNumber, picNumbers[tileNumber]);
 
+            int placedIndex = -1;
             int x_1;
             int y_1;
 
@@ -261,8 +260,8 @@ namespace Indigo
             {
                 newTile.picture = newTile.originalPic;
 
-                x_1 = (int)(points[0].X - Tile.width / 2f);
-                y_1 = (int)(points[0].Y - Tile.height / 2f);
+                x_1 = (int)(points[0].X - Tile.Width / 2f);
+                y_1 = (int)(points[0].Y - Tile.Height / 2f);
                 newTile.index = 0;
                 placedIndex = 0;
             }
@@ -275,12 +274,12 @@ namespace Indigo
                 newTile.index = p;
                 placedIndex = p;
 
-                x_1 = (int)(points[p].X - Tile.width / 2f);
-                y_1 = (int)(points[p].Y - Tile.height / 2f);
+                x_1 = (int)(points[p].X - Tile.Width / 2f);
+                y_1 = (int)(points[p].Y - Tile.Height / 2f);
 
                 if (tileNumber > 1)
                 {
-                    newTile.picture = ImageUtils.RotateHex(newTile.picture, 60f * (tileNumber - 1), Tile.width, Tile.height);
+                    newTile.picture = ImageUtils.RotateHex(newTile.picture, 60f * (tileNumber - 1), Tile.Width, Tile.Height);
 
                     for (int i = 0; i < 6; i++)
                     {
@@ -294,9 +293,12 @@ namespace Indigo
             }
             else
             {
-                int spaceBetweenTypes = 215;        //  215 = magic number
-                if (isOnlineGame)                  // TODO change !isOnlineGame to isOnlineGame
-                    spaceBetweenTypes = 100;
+                int spaceBetweenTypes = 100;        //  215 = magic number
+                if (!isOnlineGame)
+                {
+                    newTile.picture = newTile.originalPic;
+                    spaceBetweenTypes = 215;
+                }
 
                 x_1 = boardSeparation;
                 y_1 = (int)(((picNumbers[tileNumber] - 2) * spaceBetweenTypes + xPos) * scale); 
@@ -311,7 +313,7 @@ namespace Indigo
             newTile.position.X = x_1;
             newTile.position.Y = y_1;
             newTile.rect.X = newTile.position.X;
-            newTile.rect.Y = newTile.position.Y + Tile.height / 8;
+            newTile.rect.Y = newTile.position.Y + Tile.Height / 8;
 
             tiles.Add(newTile);
             if (placedIndex != -1)
@@ -319,20 +321,22 @@ namespace Indigo
         }
         private void MakeGems(int gemNumber)
         {
-            Gem newGem = new Gem(picNumbers[gemNumber]);
+            Gem newGem = new Gem(gemNumber, picNumbers[gemNumber]);
+
             int x_1 = 0;
             int y_1 = 0;
+
             if (newGem.name == "Blue")
             {
                 newGem.onTile = 0;
-                x_1 = (int)(points[0].X - Gem.width / 2f);
-                y_1 = (int)(points[0].Y - Gem.height / 2f);
+                x_1 = (int)(points[0].X - Gem.Width / 2f);
+                y_1 = (int)(points[0].Y - Gem.Height / 2f);
             }
             else if (newGem.name == "Green")
             {
                 newGem.onTile = 0;
-                x_1 = (int)(points[0].X - Gem.width / 2f + 30 * scale * (float)Math.Cos(gemNumber * 72 * Math.PI / 180f));
-                y_1 = (int)(points[0].Y - Gem.height / 2f + 30 * scale * (float)Math.Sin(gemNumber * 72 * Math.PI / 180f));     //  30 = magic number
+                x_1 = (int)(points[0].X - Gem.Width / 2f + 30 * scale * (float)Math.Cos(gemNumber * 72 * Math.PI / 180f));
+                y_1 = (int)(points[0].Y - Gem.Height / 2f + 30 * scale * (float)Math.Sin(gemNumber * 72 * Math.PI / 180f));     //  30 = magic number
             }
             else if (newGem.name == "Yellow")
             {
@@ -340,8 +344,8 @@ namespace Indigo
                 newGem.onPath = (4 + gemNumber % 6) % 6;
 
                 Vector2 v_1 = Vector2.Lerp(points[newGem.onTile], points[newGem.onTile - 18], 1 / 4f);
-                x_1 = (int)(v_1.X - Gem.width / 2f);
-                y_1 = (int)(v_1.Y - Gem.height / 2f);
+                x_1 = (int)(v_1.X - Gem.Width / 2f);
+                y_1 = (int)(v_1.Y - Gem.Height / 2f);
             }
             newGem.position.X = x_1;
             newGem.position.Y = y_1;
@@ -351,26 +355,30 @@ namespace Indigo
         }
         private void MakeTokens(List<string> colors)
         {
+            int tokenId = 0;
+            
             playerTokens.Clear();
             playerColors = new List<string>(colors);
             gatewayOwners = CreateGatewayOwners(colors.Count);
-
+            
             foreach (int[] owners in gatewayOwners)
-            {
                 foreach (int owner in owners)
-                    playerTokens.Add(new PlayerToken(owner, colors[owner]));
-            }
+                {
+                    playerTokens.Add(new PlayerToken(tokenId, owner, colors[owner]));
+                    tokenId++;
+                }
 
-            var r = Tile.height / 2 * 3 - 5;
+
+            var r = Tile.Height / 2 * 3 - 5;
             var numOfRotations = 7;
 
             for (int i = 0; i < playerTokens.Count; i++)
             {
-                playerTokens[i].position.X = (int)(points[25 + i].X + r * (float)Math.Sin(numOfRotations * 60 * Math.PI / 180f) - PlayerToken.width / 2);
-                playerTokens[i].position.Y = (int)(points[25 + i].Y + r * (float)Math.Cos(numOfRotations * 60 * Math.PI / 180f) - PlayerToken.width / 2);
+                playerTokens[i].position.X = (int)(points[25 + i].X + r * (float)Math.Sin(numOfRotations * 60 * Math.PI / 180f) - PlayerToken.Width / 2);
+                playerTokens[i].position.Y = (int)(points[25 + i].Y + r * (float)Math.Cos(numOfRotations * 60 * Math.PI / 180f) - PlayerToken.Width / 2);
 
-                playerTokens[i + 1].position.X = (int)(points[26 + i].X + r * (float)Math.Sin(numOfRotations * 60 * Math.PI / 180f) - PlayerToken.width / 2);
-                playerTokens[i + 1].position.Y = (int)(points[26 + i].Y + r * (float)Math.Cos(numOfRotations * 60 * Math.PI / 180f) - PlayerToken.width / 2);
+                playerTokens[i + 1].position.X = (int)(points[26 + i].X + r * (float)Math.Sin(numOfRotations * 60 * Math.PI / 180f) - PlayerToken.Width / 2);
+                playerTokens[i + 1].position.Y = (int)(points[26 + i].Y + r * (float)Math.Cos(numOfRotations * 60 * Math.PI / 180f) - PlayerToken.Width / 2);
 
                 numOfRotations--;
                 i++;
@@ -428,7 +436,7 @@ namespace Indigo
         }
         private Image GetPlayerPicture(int playerIndex)
         {
-            return new PlayerToken(playerIndex, playerColors[playerIndex]).picture;
+            return new PlayerToken(-1, playerIndex, playerColors[playerIndex]).picture;
         }
         public Vector2[] CreateHexGrid(Vector2 center, int totalNumOfRings, float originalR)
         {
@@ -512,7 +520,7 @@ namespace Indigo
         }
         private bool Snap(Tile tile)
         {
-            Vector2 pos = new Vector2(tile.position.X + Tile.width / 2, tile.position.Y + Tile.height / 2);
+            Vector2 pos = new Vector2(tile.position.X + Tile.Width / 2, tile.position.Y + Tile.Height / 2);
             int index = GetClosestIndex(pos);
 
             if (index < 0 || placedTiles[index] != null)
@@ -525,20 +533,18 @@ namespace Indigo
             tile.index = index;
             Vector2 new_pos = points[index];
 
-            int newX = (int)(new_pos.X - Tile.width / 2f);
-            int newY = (int)(new_pos.Y - Tile.height / 2f);
+            int newX = (int)(new_pos.X - Tile.Width / 2f);
+            int newY = (int)(new_pos.Y - Tile.Height / 2f);
 
             tile.position = new Point(newX, newY);
             placedTiles[index] = tile;
 
             if (isOnlineGame && yourTurn && sendTurnAsync != null)
             {
-                int tileIndex = tiles.IndexOf(tile);
-
                 TurnMessage turn = new TurnMessage
                 {
                     PlayerIndex = currentPlayerIndex,
-                    TileIndex = tileIndex,
+                    TileIndex = tile.id,
                     Rotation = tile.numOfRotation,              //TODO: change tile.index to the tile.placement or smt
                     BoardIndex = tile.index
                 };
@@ -547,9 +553,6 @@ namespace Indigo
 
                 yourTurn = false;
             }
-
-            if (!isOnlineGame)
-                GetNewTile();
 
             List<int> neighborIndexies = FindNeighbors(new_pos);
             if (!neighborIndexies.Any())
@@ -578,26 +581,16 @@ namespace Indigo
             if (tiles[tileNumber].index != -1)
                 return;
 
+            availableTileId = tiles[tileNumber].id;
             tiles[tileNumber].picture = tiles[tileNumber].originalPic;
-
-            int temp = tiles[tileNumber].rect.Y - tiles[tileNumber].position.Y;
+            
+            int realVsHitboxDiff = tiles[tileNumber].rect.Y - tiles[tileNumber].position.Y;
 
             tiles[tileNumber].position.Y = (int)(700 * scale);
-            tiles[tileNumber].rect.Y = tiles[tileNumber].position.Y + temp;
+            tiles[tileNumber].rect.Y = tiles[tileNumber].position.Y + realVsHitboxDiff;
 
             BuildStaticLayer();
             Board.Invalidate();
-        }
-        private void ShowCurrentTurnBanner()
-        {
-            if (numOfPlayers <= 0 || !playerColors.Any())
-                return;
-
-            turnBanner.Text = $"Player {currentPlayerIndex + 1} turn";
-            turnBanner.Visible = true;
-            turnBanner.BringToFront();
-            TurnBannerTimer.Stop();
-            TurnBannerTimer.Start();
         }
         private void AdvanceTurn()
         {
@@ -605,7 +598,26 @@ namespace Indigo
                 return;
 
             currentPlayerIndex = (currentPlayerIndex + 1) % numOfPlayers;
+
+            if (currentPlayerIndex == localPlayerId)
+                GetNewTile();
+
             ShowCurrentTurnBanner();
+        }
+        private void ShowCurrentTurnBanner()
+        {
+            if (numOfPlayers <= 0 || !playerColors.Any())
+                return;
+
+            if (currentPlayerIndex == localPlayerId)
+                turnBanner.Text = "Your turn";
+            else
+                turnBanner.Text = $"Player {currentPlayerIndex + 1} turn";
+
+            turnBanner.Visible = true;
+            turnBanner.BringToFront();
+            TurnBannerTimer.Stop();
+            TurnBannerTimer.Start();
         }
         private void UpdateScoreLabels()
         {
@@ -659,8 +671,8 @@ namespace Indigo
 
                     var midPoint = (points[0] + points[placedTile.index]) / 2;
 
-                    gems[num].position.X = (int)(midPoint.X - Gem.width / 2);
-                    gems[num].position.Y = (int)(midPoint.Y - Gem.height / 2);
+                    gems[num].position.X = (int)(midPoint.X - Gem.Width / 2);
+                    gems[num].position.Y = (int)(midPoint.Y - Gem.Height / 2);
                 }
 
                 List<Gem> temp = new List<Gem>(neighbor.gemsInside);
@@ -672,8 +684,8 @@ namespace Indigo
                         {
                             var midPoint = (points[neighbor.index - 18] + points[neighbor.index]) / 2;
 
-                            gem.position.X = (int)(midPoint.X - Gem.width / 2);
-                            gem.position.Y = (int)(midPoint.Y - Gem.height / 2);
+                            gem.position.X = (int)(midPoint.X - Gem.Width / 2);
+                            gem.position.Y = (int)(midPoint.Y - Gem.Height / 2);
                         }
 
                         gem.active = true;
@@ -738,7 +750,7 @@ namespace Indigo
                 if (!clockwise)
                     rotation = -60f;
 
-                tile.picture = ImageUtils.RotateHex(tile.picture, rotation, Tile.width, Tile.height);
+                tile.picture = ImageUtils.RotateHex(tile.picture, rotation, Tile.Width, Tile.Height);
             }
 
             int[] temp = new int[6];
@@ -795,7 +807,7 @@ namespace Indigo
         }
         private void GameEnd()
         {
-            bool youWon = true;
+            bool youWon = true;     //TODO tie screen
 
             for (int i = 0; i < numOfPlayers; i++)
                 if (playersPoints[localPlayerId] < playersPoints[i])
@@ -850,10 +862,7 @@ namespace Indigo
         }
         private void BoardMouseDown(object sender, MouseEventArgs e)
         {
-            if (!IsLocalPlayersTurn())
-                return;
-
-            if (hideMode)
+            if (hideMode || !IsLocalPlayersTurn())
                 return;
 
             if (e.Button == MouseButtons.Left)
@@ -871,9 +880,14 @@ namespace Indigo
             {
                 Point mousePosition = new Point(e.X, e.Y);
 
+                Image imageOfBack = Properties.Resources.BackOfTile;
+
                 foreach (Tile newTile in tiles)
                     if (newTile.rect.Contains(mousePosition) && newTile.index == -1)
                     {
+                        if (isOnlineGame && newTile.id != availableTileId)
+                            return;
+                        
                         selectedTile = newTile;
                         newTile.active = true;
 
@@ -890,8 +904,8 @@ namespace Indigo
 
             if (leftDown && selectedTile != null && Board.DisplayRectangle.Contains(e.X, e.Y))
             {
-                selectedTile.position.X = e.X - (Tile.width / 2);
-                selectedTile.position.Y = e.Y - (Tile.height / 2);
+                selectedTile.position.X = e.X - (Tile.Width / 2);
+                selectedTile.position.Y = e.Y - (Tile.Height / 2);
 
                 if (debugMode)
                     debugLabel1.Text = "mousePosition: " + e.X + " " + e.Y +
@@ -953,7 +967,7 @@ namespace Indigo
             if (selectedTile != null)
             {
                 selectedTile.rect.X = selectedTile.position.X;
-                selectedTile.rect.Y = selectedTile.position.Y + Tile.height / 8;
+                selectedTile.rect.Y = selectedTile.position.Y + Tile.Height / 8;
 
                 if (lineAnimation < 5)
                     lineAnimation++;
@@ -1033,8 +1047,8 @@ namespace Indigo
                     anotherPoint = (points[gem.onTile] + points[anotherTile]) / 2f;
 
 
-                gem.position.X = (int)(anotherPoint.X - Gem.width / 2);
-                gem.position.Y = (int)(anotherPoint.Y - Gem.height / 2);
+                gem.position.X = (int)(anotherPoint.X - Gem.Width / 2);
+                gem.position.Y = (int)(anotherPoint.Y - Gem.Height / 2);
 
                 m1.t = 0f;
                 m1.speed = 1f;
@@ -1066,9 +1080,9 @@ namespace Indigo
 
             var currentPosition = Bezier(m1.startPoint, m1.middlePoint, m1.endPoint, m1.t);
 
-            gem.position.X = (int)currentPosition.X - Gem.width / 2;
+            gem.position.X = (int)currentPosition.X - Gem.Width / 2;
             if (m1.diff != 3 || m1.willExitBy % 3 != 1)
-                gem.position.Y = (int)currentPosition.Y - Gem.height / 2;
+                gem.position.Y = (int)currentPosition.Y - Gem.Height / 2;
 
             Invalidate();
         }
@@ -1103,51 +1117,22 @@ namespace Indigo
 
             staticLayer = new Bitmap(Board.Width, Board.Height);
 
-            using (Graphics g = Graphics.FromImage(staticLayer))
+            using Graphics g = Graphics.FromImage(staticLayer);
+
+            boardImage.Draw(g, debugMode);
+
+            if (!hideMode)
             {
-                g.DrawImage(
-                    boardImage.picture,
-                    boardImage.position.X,
-                    boardImage.position.Y,
-                    BoardImage.width,
-                    BoardImage.height
-                );
+                foreach (Tile tile in tiles)
+                    if (!tile.active)
+                        tile.Draw(g, debugMode);
 
-                if (!hideMode)
-                {
-                    foreach (Tile tile in tiles)
-                    {
-                        if (tile.active)
-                            continue;
+                foreach (PlayerToken token in playerTokens)
+                    token.Draw(g, debugMode);
 
-                        g.DrawImage(tile.picture, tile.position.X, tile.position.Y, Tile.width, Tile.height);
-                    }
-
-                    for (int i = 0; i < playerTokens.Count(); i++)
-                    {
-                        g.DrawImage(playerTokens[i].picture, playerTokens[i].position.X, playerTokens[i].position.Y, PlayerToken.width, PlayerToken.height);
-
-                        if (debugMode)
-                        {
-                            g.DrawString(i.ToString(), Font, Brushes.Red, playerTokens[i].position.X + 25, playerTokens[i].position.Y);
-                            g.FillRectangle(Brushes.Gray, playerTokens[i].position.X - 3, playerTokens[i].position.Y - 3, 6, 6);
-                        }
-                    }
-
-                    for (int i = 0; i < gems.Count(); i++)
-                    {
-                        if (gems[i].active)
-                            continue;
-
-                        g.DrawImage(gems[i].picture, gems[i].position.X, gems[i].position.Y, Gem.width, Gem.height);
-
-                        if (debugMode)
-                        {
-                            g.DrawString(i.ToString(), Font, Brushes.Red, gems[i].position.X + 25, gems[i].position.Y);
-                            g.FillRectangle(Brushes.Gray, gems[i].position.X, gems[i].position.Y, 5, 5);
-                        }
-                    }
-                }
+                foreach (Gem gem in gems)
+                    if (!gem.active)
+                        gem.Draw(g, debugMode);
             }
         }
         private void Board_Paint(object sender, PaintEventArgs e)
@@ -1159,24 +1144,15 @@ namespace Indigo
 
             if (!hideMode)
             {
-                for (int i = 0; i < gems.Count(); i++)
-                {
-                    if (!gems[i].active)
-                        continue;
-
-                    g.DrawImage(gems[i].picture, gems[i].position.X, gems[i].position.Y, Gem.width, Gem.height);
-                    if (debugMode)
-                    {
-                        g.DrawString(i.ToString(), Font, Brushes.Red, gems[i].position.X + 25, gems[i].position.Y);
-                        g.FillRectangle(Brushes.Gray, gems[i].position.X, gems[i].position.Y, 5, 5);
-                    }
-                }
+                foreach (Gem gem in gems)
+                    if (gem.active)
+                        gem.Draw(g, debugMode);
 
                 if (selectedTile != null)
                 {
-                    g.DrawImage(selectedTile.picture, selectedTile.position.X, selectedTile.position.Y, Tile.width, Tile.height);
+                    selectedTile.Draw(g, debugMode);
 
-                    Pen outline = new Pen(Color.Maroon, lineAnimation);
+                    Pen outline = new(Color.Maroon, lineAnimation);
                     g.DrawRectangle(outline, selectedTile.rect);
                 }
             }
@@ -1186,7 +1162,7 @@ namespace Indigo
                 Brush[] brushes = [Brushes.Green, Brushes.Red, Brushes.Blue, Brushes.Yellow, Brushes.Magenta, Brushes.DarkBlue];
 
                 var shape = new PointF[6];
-                var r = Tile.height / 2;
+                var r = Tile.Height / 2;
                 int pointOffset = 2;
 
                 g.FillRectangle(Brushes.Black, points[0].X, points[0].Y, 5, 5);
@@ -1199,7 +1175,7 @@ namespace Indigo
                 }
                 g.DrawPolygon(Pens.Red, shape);
 
-                for (int i = 1; i < points.Count(); i++)
+                for (int i = 1; i < points.Length; i++)
                 {
                     Vector2 p = points[i];
 
