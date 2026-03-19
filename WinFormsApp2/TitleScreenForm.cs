@@ -6,6 +6,7 @@ namespace Indigo
     {
         int playerCount = 2;
         float percent = 1;
+        private OnlineMultiplayerForm? onlineForm;
 
         int[] sizesOfObjects = [
             BoardImage.Width,
@@ -96,8 +97,19 @@ namespace Indigo
         }
         private void onlineButton_Click(object sender, EventArgs e)
         {
-            using OnlineMultiplayerForm form = new OnlineMultiplayerForm(sizesOfObjects, percent);
-            form.ShowDialog(this);
+            if (onlineForm != null && !onlineForm.IsDisposed)
+            {
+                if (onlineForm.WindowState == FormWindowState.Minimized)
+                    onlineForm.WindowState = FormWindowState.Normal;
+
+                onlineForm.BringToFront();
+                onlineForm.Activate();
+                return;
+            }
+
+            onlineForm = new OnlineMultiplayerForm(sizesOfObjects, percent);
+            onlineForm.FormClosed += (_, _) => onlineForm = null;
+            onlineForm.Show();
         }
     }
 }

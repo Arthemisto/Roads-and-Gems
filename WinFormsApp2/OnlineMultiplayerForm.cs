@@ -755,23 +755,23 @@ namespace Indigo
             formRefreshTimer.Stop();
             ToggleLobbyControls(false);
 
-            using GameForm gameForm = new GameForm(sizesOfObjects, percent, playerCount, localPlayerId, SendTurnAsync, onlineColors);
-            activeGameForm = gameForm;
+            activeGameForm = new GameForm(sizesOfObjects, percent, playerCount, localPlayerId, SendTurnAsync, onlineColors);
             Hide();
-            try
-            {
-                gameForm.ShowDialog(this);
-            }
-            finally
+            activeGameForm.FormClosed += (_, _) =>
             {
                 activeGameForm = null;
                 Show();
+                Activate();
                 formRefreshTimer.Start();
                 isLaunchingGame = false;
                 ToggleLobbyControls(true);
                 RefreshPlayerList();
                 UpdateControlStates();
-            }
+            };
+
+            activeGameForm.Show();
+            activeGameForm.BringToFront();
+            activeGameForm.Activate();
         }
 
         private void ToggleLobbyControls(bool enabled)
