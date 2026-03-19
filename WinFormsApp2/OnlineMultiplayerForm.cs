@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Drawing.Drawing2D;
 using System.Text;
 using System.Text.Json;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
@@ -29,6 +30,7 @@ namespace Indigo
         private int[] sizesOfObjects;
         private float percent;
         private char chColor = 'W';
+        private readonly Dictionary<PictureBox, Panel> colorCards = new Dictionary<PictureBox, Panel>();
 
         public OnlineMultiplayerForm(int[] sizesOfObjects, float percent)
         {
@@ -40,6 +42,8 @@ namespace Indigo
             playerNameTextBox.Text = $"{Environment.UserName}";
             RefreshPlayerList();
             UpdateHostShareTargets();
+            StyleColorPicker();
+            chooseColors(pictureOfColor4);
 
             startHosting(true);
             logTextBox.Clear();
@@ -851,12 +855,11 @@ namespace Indigo
 
         public void chooseColors(PictureBox chosen)
         {
-            pictureOfColor1.BackColor = Color.FromArgb(64, 64, 64);
-            pictureOfColor2.BackColor = Color.FromArgb(64, 64, 64);
-            pictureOfColor3.BackColor = Color.FromArgb(64, 64, 64);
-            pictureOfColor4.BackColor = Color.FromArgb(64, 64, 64);
+            foreach (Panel card in colorCards.Values)
+                card.Visible = false;
 
-            chosen.BackColor = Color.LightGreen;
+            if (colorCards.TryGetValue(chosen, out Panel? selectedCard))
+                selectedCard.Visible = true;
             
             switch (chosen.Tag)
             {
@@ -873,6 +876,45 @@ namespace Indigo
                     chColor = 'W';
                     break;
             }
+        }
+
+        private void StyleColorPicker()
+        {
+            PictureBox[] pictures = [pictureOfColor1, pictureOfColor2, pictureOfColor3, pictureOfColor4];
+            foreach (PictureBox picture in pictures)
+            {
+                Panel card = new Panel
+                {
+                    Size = new Size(picture.Width + 12, picture.Height + 12),
+                    Location = new Point(picture.Left - 6, picture.Top - 6),
+                    BackColor = Color.FromArgb(0, 128, 0),
+                    Visible = false
+                };
+
+                colorCards[picture] = card;
+                Controls.Add(card);
+                ApplyRoundedRegion(card, card.Width / 2);
+                card.SendToBack();
+
+                picture.BackColor = Color.Transparent;
+                ApplyRoundedRegion(picture, picture.Width / 2);
+                picture.BringToFront();
+            }
+        }
+
+        private static void ApplyRoundedRegion(Control control, int radius)
+        {
+            using GraphicsPath path = new GraphicsPath();
+            int diameter = radius * 2;
+
+            path.StartFigure();
+            path.AddArc(0, 0, diameter, diameter, 180, 90);
+            path.AddArc(control.Width - diameter, 0, diameter, diameter, 270, 90);
+            path.AddArc(control.Width - diameter, control.Height - diameter, diameter, diameter, 0, 90);
+            path.AddArc(0, control.Height - diameter, diameter, diameter, 90, 90);
+            path.CloseFigure();
+
+            control.Region = new Region(path);
         }
     }
 }
